@@ -1,0 +1,1089 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+<title>가챠 점심 🎰 캡슐 뽑아 점심 정하기</title>
+
+<!-- PWA -->
+<link rel="manifest" href="manifest.webmanifest" />
+<meta name="theme-color" content="#ff6b5e" />
+<meta name="description" content="캡슐 가챠로 오늘 점심 식당을 뽑아주는 앱" />
+<meta name="mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="default" />
+<meta name="apple-mobile-web-app-title" content="가챠 점심" />
+<link rel="apple-touch-icon" href="apple-touch-icon-180.png" />
+<style>
+  :root {
+    --bg-top: #fff3f2;
+    --bg-bot: #ffe3c0;
+    --red: #ff6b5e;
+    --red-deep: #e8503f;
+    --yellow: #ffd34e;
+    --cream: #fff7ec;
+    --ink: #3a2b2b;
+    --muted: #9a8a86;
+    --glass: rgba(206,228,255,.30);
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { margin: 0; height: 100%; overflow: hidden; }
+  body {
+    font-family: "Apple SD Gothic Neo", "Malgun Gothic", system-ui, sans-serif;
+    color: var(--ink);
+    background:
+      radial-gradient(85% 55% at 50% 6%, #fff6da 0%, transparent 55%),
+      radial-gradient(70% 50% at 14% 26%, #ffd9e6 0%, transparent 60%),
+      radial-gradient(70% 50% at 86% 22%, #d6ecff 0%, transparent 60%),
+      linear-gradient(180deg, var(--bg-top) 0%, var(--bg-bot) 100%);
+    -webkit-user-select: none; user-select: none;
+    touch-action: manipulation;
+  }
+
+  /* ===== 헤더 ===== */
+  #title {
+    position: fixed; top: calc(12px + env(safe-area-inset-top)); left: 0; right: 0;
+    text-align: center; z-index: 50; pointer-events: none;
+  }
+  #title h1 {
+    margin: 0; font-size: 1.3rem; font-weight: 900; letter-spacing: .5px;
+    color: var(--red-deep); text-shadow: 0 2px 0 #fff, 0 3px 6px rgba(232,80,63,.2);
+  }
+  #title p { margin: 3px 0 0; font-size: .76rem; color: var(--muted); }
+
+  #keyBtn {
+    position: fixed; top: calc(12px + env(safe-area-inset-top)); right: 14px; z-index: 55;
+    width: 40px; height: 40px; border-radius: 12px; cursor: pointer;
+    font-size: 1.05rem; line-height: 1; pointer-events: auto;
+    background: #fff; color: var(--ink);
+    border: 2px solid rgba(232,80,63,.25); box-shadow: 0 3px 8px rgba(0,0,0,.1);
+    transition: transform .06s;
+  }
+  #keyBtn:active { transform: scale(.92); }
+
+  /* 카테고리 칩 바 */
+  #cats {
+    position: fixed; top: calc(58px + env(safe-area-inset-top)); left: 0; right: 0;
+    z-index: 50; display: flex; gap: 7px; justify-content: center; flex-wrap: wrap;
+    padding: 0 12px; pointer-events: none;
+  }
+  #cats .chip {
+    pointer-events: auto; font-family: inherit; font-size: .8rem; font-weight: 800;
+    padding: 6px 13px; border-radius: 999px; cursor: pointer;
+    background: #fff; color: var(--muted);
+    border: 2px solid rgba(0,0,0,.06); box-shadow: 0 2px 5px rgba(0,0,0,.06);
+    transition: background .15s, color .15s, border-color .15s, transform .05s;
+  }
+  #cats .chip:active { transform: scale(.94); }
+  #cats .chip.active {
+    background: var(--red); color: #fff; border-color: var(--red);
+    box-shadow: 0 4px 12px rgba(255,107,94,.4);
+  }
+
+  /* ===== 무대 (가챠 머신 중앙 배치) ===== */
+  #stage {
+    position: fixed; inset: 0; display: flex; align-items: center; justify-content: center;
+    padding-bottom: 40px;
+  }
+
+  /* 머신 바닥 그림자 */
+  #machine::before {
+    content: ""; position: absolute; left: 50%; bottom: -22px; transform: translateX(-50%);
+    width: 78%; height: 26px; border-radius: 50%;
+    background: radial-gradient(closest-side, rgba(120,70,60,.32), transparent 75%);
+    z-index: -1;
+  }
+
+  #machine {
+    position: relative; width: min(330px, 86vw);
+    animation: bob 4s ease-in-out infinite;
+  }
+  @keyframes bob { 50% { transform: translateY(-7px); } }
+  #machine.shake { animation: mshake .09s linear 0s 9; }
+  @keyframes mshake {
+    0%,100% { transform: translate(0,0) rotate(0); }
+    25% { transform: translate(-2px,1px) rotate(-.5deg); }
+    75% { transform: translate(2px,-1px) rotate(.5deg); }
+  }
+
+  /* 유리 돔 (캡슐이 담긴 상단) */
+  .gacha-head {
+    position: relative; height: 200px;
+    border-radius: 50% 50% 16% 16% / 64% 64% 10% 10%;
+    background:
+      radial-gradient(120% 90% at 34% 22%, rgba(255,255,255,.95) 0%, rgba(255,255,255,.4) 34%, transparent 60%),
+      var(--glass);
+    border: 4px solid rgba(255,255,255,.85);
+    box-shadow:
+      inset 0 8px 20px rgba(255,255,255,.7),
+      inset 0 -16px 30px rgba(120,150,200,.25),
+      0 6px 18px rgba(120,140,180,.25);
+    overflow: hidden;
+  }
+  /* 돔 안쪽 바닥(깔때기) */
+  .gacha-head::after {
+    content: ""; position: absolute; left: 8%; right: 8%; bottom: 0; height: 40px;
+    background: radial-gradient(80% 120% at 50% 120%, rgba(255,255,255,.85), rgba(255,255,255,.2));
+    border-radius: 50% 50% 0 0;
+  }
+
+  .capsule {
+    position: absolute; width: 30px; height: 30px; border-radius: 50%;
+    transform: translate(-50%, -50%);
+    background:
+      radial-gradient(120% 120% at 35% 22%, rgba(255,255,255,.7), transparent 42%),
+      linear-gradient(180deg, var(--cc, #ffb3a8) 0 50%, rgba(255,255,255,.94) 50% 100%);
+    box-shadow: inset 0 -3px 5px rgba(0,0,0,.14), inset 0 3px 4px rgba(255,255,255,.55), 0 2px 4px rgba(0,0,0,.18);
+    border: 1px solid rgba(0,0,0,.05);
+    opacity: 0; animation: cpop .35s ease forwards;
+  }
+  .capsule::after {
+    content: ""; position: absolute; left: 12%; right: 12%; top: 50%; height: 2px;
+    transform: translateY(-1px); background: rgba(0,0,0,.13); border-radius: 2px;
+  }
+  @keyframes cpop {
+    0% { opacity: 0; transform: translate(-50%,-50%) scale(.2); }
+    100% { opacity: 1; transform: translate(-50%,-50%) scale(1) rotate(var(--rot,0deg)); }
+  }
+
+  /* 돔과 몸체 사이 림 */
+  .gacha-neck {
+    height: 26px; margin: -10px 6px 0;
+    border-radius: 0 0 16px 16px;
+    background: linear-gradient(180deg, var(--red), var(--red-deep));
+    box-shadow: inset 0 3px 4px rgba(255,255,255,.35), inset 0 -3px 6px rgba(0,0,0,.2);
+  }
+
+  /* 몸체 (빨간 패널) */
+  .gacha-body {
+    position: relative; margin: 0 2px; padding: 16px 18px 20px;
+    border-radius: 14px 14px 22px 22px;
+    background: linear-gradient(180deg, var(--red) 0%, var(--red-deep) 100%);
+    box-shadow: inset 0 3px 4px rgba(255,255,255,.3), inset 0 -8px 14px rgba(0,0,0,.22), 0 8px 18px rgba(232,80,63,.3);
+  }
+  .brand {
+    margin: 0 auto 12px; width: max-content;
+    font-size: .82rem; font-weight: 900; letter-spacing: 1px; color: var(--red-deep);
+    background: linear-gradient(180deg, #fff, #ffe9c4);
+    padding: 5px 16px; border-radius: 999px;
+    box-shadow: 0 2px 5px rgba(0,0,0,.18), inset 0 1px 0 #fff;
+  }
+  .coinslot {
+    margin: 0 auto 14px; width: 70px; height: 22px; border-radius: 6px;
+    background: linear-gradient(180deg, #2a1c1a, #5a3a36);
+    box-shadow: inset 0 2px 5px rgba(0,0,0,.6), 0 1px 0 rgba(255,255,255,.25);
+    display: flex; align-items: center; justify-content: center;
+    color: #ffd9a8; font-size: .62rem; font-weight: 800; letter-spacing: 1px;
+  }
+
+  /* 손잡이 (돌리는 노브) */
+  .knob {
+    position: relative; width: 76px; height: 76px; margin: 0 auto; border-radius: 50%;
+    cursor: pointer;
+    background: radial-gradient(circle at 36% 30%, #ffffff, #dbe0ea 46%, #aab2c2);
+    border: 4px solid #fff;
+    box-shadow: 0 5px 10px rgba(0,0,0,.3), inset 0 2px 3px rgba(255,255,255,.85), inset 0 -4px 6px rgba(0,0,0,.2);
+    transition: transform .9s cubic-bezier(.3,.85,.3,1);
+    display: flex; align-items: center; justify-content: center;
+  }
+  .knob::after {
+    content: ""; position: absolute; width: 54px; height: 10px; border-radius: 6px;
+    background: linear-gradient(90deg, #828b9d, #b3bbca);
+    box-shadow: inset 0 1px 1px rgba(255,255,255,.7), inset 0 -1px 2px rgba(0,0,0,.25);
+  }
+  .knob > .hub {
+    position: relative; z-index: 1; width: 16px; height: 16px; border-radius: 4px;
+    background: #6f7889; box-shadow: 0 0 0 4px rgba(255,255,255,.5);
+  }
+  .knob.spin { transform: rotate(540deg); }
+  #machine.ready .knob { animation: knobnudge 1.6s ease-in-out infinite; }
+  @keyframes knobnudge {
+    0%,88%,100% { box-shadow: 0 5px 10px rgba(0,0,0,.3), inset 0 2px 3px rgba(255,255,255,.85), inset 0 -4px 6px rgba(0,0,0,.2); }
+    94% { box-shadow: 0 0 0 5px rgba(255,211,78,.6), 0 5px 10px rgba(0,0,0,.3); }
+  }
+  .knob-label {
+    margin: 8px auto 0; text-align: center; font-size: .66rem; font-weight: 900;
+    letter-spacing: 2px; color: rgba(255,255,255,.92);
+  }
+
+  /* 배출구 / 트레이 */
+  .gacha-tray {
+    position: relative; margin: 10px 24px 0; height: 78px;
+    border-radius: 10px 10px 16px 16px;
+    background: linear-gradient(180deg, rgba(0,0,0,.18), rgba(0,0,0,.32));
+    box-shadow: inset 0 4px 10px rgba(0,0,0,.45);
+    display: flex; align-items: center; justify-content: center;
+  }
+  .gacha-tray .tray-lip {
+    position: absolute; top: -7px; left: 50%; transform: translateX(-50%);
+    width: 60%; height: 12px; border-radius: 8px 8px 0 0;
+    background: linear-gradient(180deg, #fff, #ffd9d2);
+    box-shadow: 0 2px 4px rgba(0,0,0,.2);
+  }
+
+  /* 떨어지는 캡슐 (크랭크 → 트레이) */
+  .dropping {
+    position: absolute; left: 50%; top: 38%; width: 36px; height: 36px; border-radius: 50%;
+    z-index: 6; pointer-events: none;
+    background:
+      radial-gradient(120% 120% at 35% 22%, rgba(255,255,255,.7), transparent 42%),
+      linear-gradient(180deg, var(--cc, #ffb3a8) 0 50%, rgba(255,255,255,.94) 50% 100%);
+    box-shadow: inset 0 -3px 5px rgba(0,0,0,.14), 0 3px 6px rgba(0,0,0,.25);
+    animation: dropfall .95s cubic-bezier(.5,.05,.6,1) forwards;
+  }
+  @keyframes dropfall {
+    0%   { top: 38%; left: 50%; opacity: 0; transform: translate(-50%,-50%) scale(.5); }
+    12%  { opacity: 1; transform: translate(-50%,-50%) scale(1); }
+    52%  { top: 66%; left: 45%; }
+    68%  { top: 80%; left: 55%; }
+    84%  { top: 90%; left: 50%; }
+    92%  { top: 85%; left: 50%; }
+    100% { top: 90%; left: 50%; opacity: 0; }
+  }
+
+  /* 트레이 안에서 열리는 큰 캡슐 */
+  .bigcap {
+    position: relative; width: 64px; height: 64px; cursor: pointer;
+    animation: capland .5s cubic-bezier(.2,1.3,.4,1);
+  }
+  .bigcap:not(.open) { animation: capland .5s cubic-bezier(.2,1.3,.4,1), capwob 1.3s ease-in-out .5s infinite; }
+  @keyframes capland { 0% { transform: translateY(-50px) scale(.6); opacity: 0; } 100% { transform: translateY(0) scale(1); opacity: 1; } }
+  @keyframes capwob { 0%,100% { transform: rotate(-5deg); } 50% { transform: rotate(5deg); } }
+  .bhalf { position: absolute; left: 0; width: 100%; height: 50%; transition: transform .5s cubic-bezier(.2,1.1,.4,1); }
+  .bhalf.top {
+    top: 0; border-radius: 999px 999px 7px 7px;
+    background: radial-gradient(120% 150% at 34% 18%, rgba(255,255,255,.65), transparent 46%), var(--cc, #ffb3a8);
+    box-shadow: inset 0 4px 6px rgba(255,255,255,.45), inset 0 -2px 4px rgba(0,0,0,.2);
+  }
+  .bhalf.bottom {
+    bottom: 0; border-radius: 7px 7px 999px 999px;
+    background: radial-gradient(120% 150% at 34% 82%, rgba(255,255,255,.95), rgba(228,233,243,.92));
+    box-shadow: inset 0 -4px 6px rgba(0,0,0,.1);
+  }
+  .breveal {
+    position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+    font-size: 34px; opacity: 0; transform: scale(.3);
+    transition: opacity .45s, transform .55s cubic-bezier(.2,1.5,.4,1);
+    filter: drop-shadow(0 3px 5px rgba(0,0,0,.3));
+  }
+  .breveal svg { width: 34px; height: 34px; }
+  .bigcap.open .top { transform: translateY(-44px) rotate(-20deg); }
+  .bigcap.open .bottom { transform: translateY(30px); }
+  .bigcap.open .breveal { opacity: 1; transform: scale(1) translateY(-4px); }
+
+  /* 컨페티 / 번쩍임 */
+  #fx { position: fixed; inset: 0; pointer-events: none; z-index: 60; }
+  #flash { position: fixed; inset: 0; background: #fff; opacity: 0; pointer-events: none; z-index: 59; transition: opacity .1s; }
+
+  /* ===== 하단 UI ===== */
+  #ui {
+    position: fixed; left: 0; right: 0; bottom: 0; z-index: 50;
+    padding: 14px 18px calc(18px + env(safe-area-inset-bottom));
+    display: flex; flex-direction: column; align-items: center; gap: 11px;
+    pointer-events: none;
+  }
+  #hint {
+    font-size: .95rem; font-weight: 700; color: var(--red-deep); text-align: center;
+    min-height: 1.3em; text-shadow: 0 1px 0 rgba(255,255,255,.6);
+  }
+  .btn {
+    pointer-events: auto;
+    padding: 14px 28px; font-size: 1.02rem; font-weight: 900; font-family: inherit;
+    color: #fff; background: linear-gradient(180deg, #ff8a7e, var(--red));
+    border: none; border-radius: 16px; cursor: pointer;
+    box-shadow: 0 8px 20px rgba(255,107,94,.4), inset 0 1px 0 rgba(255,255,255,.5);
+    transition: transform .06s, box-shadow .2s, opacity .2s;
+  }
+  .btn:active { transform: scale(.96); }
+  .btn.ghost {
+    background: #fff; color: var(--red-deep);
+    box-shadow: 0 4px 12px rgba(0,0,0,.1), inset 0 0 0 2px rgba(232,80,63,.25);
+    font-size: .9rem; padding: 11px 20px;
+  }
+  .hidden { display: none !important; }
+
+  /* 검색 로딩 */
+  #loader { display: flex; flex-direction: column; align-items: center; gap: 12px; }
+  .spinner {
+    width: 44px; height: 44px; border-radius: 50%;
+    border: 4px solid rgba(232,80,63,.18); border-top-color: var(--red);
+    animation: spin .8s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* ===== 결과 모달 ===== */
+  #resultWrap {
+    position: fixed; inset: 0; z-index: 70;
+    display: flex; align-items: center; justify-content: center; padding: 24px;
+  }
+  #resultWrap .backdrop { position: absolute; inset: 0; background: rgba(60,30,26,.4); backdrop-filter: blur(3px); }
+  #result {
+    position: relative;
+    background: var(--cream); border: 3px solid #fff;
+    border-radius: 24px; padding: 22px 24px; text-align: center;
+    box-shadow: 0 18px 50px rgba(80,40,30,.4); max-width: 360px; width: 100%;
+    max-height: 84vh; overflow-y: auto;
+    animation: rise .35s cubic-bezier(.2,1.2,.4,1);
+  }
+  @keyframes rise { from { transform: translateY(18px) scale(.94); opacity: 0; } to { transform: translateY(0) scale(1); opacity: 1; } }
+  #result .pick { font-size: .85rem; font-weight: 900; color: var(--red); letter-spacing: .5px; }
+  #result .big { margin-top: 6px; font-size: 1.55rem; font-weight: 900; color: var(--ink); display: flex; align-items: center; justify-content: center; gap: 8px; }
+  #result .big .ic { font-size: 1.7rem; line-height: 1; }
+  #result .big .ic svg { width: 1.7rem; height: 1.7rem; vertical-align: middle; }
+  #result .meta { margin-top: 6px; font-size: .85rem; color: var(--muted); }
+  #result .menu-title { text-align: left; font-size: .78rem; font-weight: 800; color: var(--muted); margin: 18px 0 4px; }
+  #result ul.menu { list-style: none; margin: 0; padding: 8px 0 0; border-top: 2px dashed rgba(0,0,0,.1); text-align: left; }
+  #result ul.menu li { display: flex; justify-content: space-between; align-items: baseline; gap: 14px; padding: 7px 2px; border-bottom: 1px dashed rgba(0,0,0,.08); }
+  #result ul.menu li:last-child { border-bottom: none; }
+  #result ul.menu li .mn { color: var(--ink); font-weight: 700; font-size: .95rem; }
+  #result ul.menu li .mp { color: var(--red-deep); font-weight: 900; white-space: nowrap; font-size: .95rem; }
+  #result .place-extra { margin-top: 16px; }
+  #result .placelink {
+    display: inline-block; font-size: .9rem; font-weight: 900; text-decoration: none;
+    color: #fff; background: linear-gradient(180deg, #6fb0ff, #3d86ff); padding: 10px 18px; border-radius: 12px;
+  }
+  #result .row { display: flex; gap: 10px; margin-top: 18px; }
+  #result .row .btn { flex: 1; }
+
+  /* ===== API 키 모달 ===== */
+  #keyWrap { position: fixed; inset: 0; z-index: 80; display: flex; align-items: center; justify-content: center; padding: 24px; }
+  #keyWrap .backdrop { position: absolute; inset: 0; background: rgba(60,30,26,.42); backdrop-filter: blur(3px); }
+  #keyBox {
+    position: relative; width: 100%; max-width: 360px; background: var(--cream);
+    border: 3px solid #fff; border-radius: 22px; padding: 22px 22px 18px;
+    box-shadow: 0 16px 50px rgba(80,40,30,.4); animation: rise .3s ease;
+  }
+  #keyBox .kb-title { font-size: 1.15rem; font-weight: 900; color: var(--red-deep); }
+  #keyBox .kb-desc { font-size: .8rem; color: var(--muted); line-height: 1.55; margin: 10px 0 14px; }
+  #keyBox .kb-desc b { color: var(--ink); }
+  #keyInput {
+    width: 100%; font-family: inherit; font-size: .95rem; padding: 12px 14px; border-radius: 12px;
+    color: var(--ink); background: #fff; border: 2px solid rgba(0,0,0,.12); outline: none;
+  }
+  #keyInput:focus { border-color: var(--red); }
+  #keyBox .kb-row { margin-top: 12px; }
+  #keyBox .kb-row .btn { width: 100%; }
+  #keyBox .kb-links { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-top: 14px; font-size: .8rem; }
+  #keyBox .kb-links a { color: #3d86ff; text-decoration: none; font-weight: 800; }
+  #keyBox .kb-skip { background: none; border: none; color: var(--muted); font-family: inherit; font-size: .8rem; cursor: pointer; text-decoration: underline; padding: 0; }
+
+  /* ===== 상식 퀴즈 오버레이 ===== */
+  #quizWrap { position: fixed; inset: 0; z-index: 90; background: #0a0a16; }
+  #quizFrame { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
+  #quizClose {
+    position: fixed; bottom: calc(14px + env(safe-area-inset-bottom)); right: 14px; z-index: 91;
+    font-family: inherit; font-size: .85rem; font-weight: 800; letter-spacing: 1px;
+    color: #0a0a16; background: linear-gradient(180deg, #aef7c0, #39ff14);
+    border: none; border-radius: 10px; padding: 9px 14px; cursor: pointer;
+    box-shadow: 0 4px 14px rgba(57,255,20,.4);
+  }
+  #quizClose:active { transform: scale(.95); }
+</style>
+</head>
+<body>
+  <div id="title">
+    <h1>🎰 가챠 점심</h1>
+    <p>캡슐을 뽑아 오늘 점심을 정해요</p>
+  </div>
+
+  <button id="keyBtn" title="카카오 API 키 설정">🔑</button>
+
+  <div id="cats"></div>
+
+  <!-- 가챠 머신 -->
+  <div id="stage">
+    <div id="machine">
+      <div class="gacha-head" id="dome"></div>
+      <div class="gacha-neck"></div>
+      <div class="gacha-body">
+        <div class="brand">GACHA 점심</div>
+        <div class="coinslot">🪙 INSERT</div>
+        <div class="knob" id="knob"><span class="hub"></span></div>
+        <div class="knob-label">PUSH ▸ 돌리기</div>
+      </div>
+      <div class="gacha-tray" id="tray"><span class="tray-lip"></span></div>
+    </div>
+  </div>
+
+  <div id="flash"></div>
+  <canvas id="fx"></canvas>
+
+  <div id="ui">
+    <div id="hint"></div>
+    <button class="btn" id="searchBtn">📡 주변 식당 캡슐 채우기</button>
+    <button class="btn ghost" id="quizBtn">🕹️ 레트로 퀴즈 풀기</button>
+    <div id="loader" class="hidden">
+      <div class="spinner"></div>
+      <div style="font-size:.9rem;color:var(--muted)">주변 식당을 캡슐에 담는 중…</div>
+    </div>
+  </div>
+
+  <!-- 카카오 API 키 입력 모달 -->
+  <div id="keyWrap" class="hidden">
+    <div class="backdrop"></div>
+    <div id="keyBox">
+      <div class="kb-title">🔑 카카오 JavaScript 키</div>
+      <p class="kb-desc">
+        실제 내 주변 식당을 불러오려면 카카오맵 <b>JavaScript 키</b>가 필요합니다.
+        키는 이 브라우저(localStorage)에만 저장되며 외부로 전송되지 않습니다.<br>
+        ※ 카카오 개발자센터에서 <b>플랫폼 → Web</b>에 이 사이트 도메인을 등록해야 동작합니다.
+      </p>
+      <input id="keyInput" type="text" placeholder="여기에 JavaScript 키 붙여넣기" autocomplete="off" spellcheck="false" />
+      <div class="kb-row"><button class="btn" id="keySave">저장하고 검색</button></div>
+      <div class="kb-links">
+        <a href="https://developers.kakao.com" target="_blank" rel="noopener">키 발급받기 ↗</a>
+        <button id="keySkip" class="kb-skip">키 없이 둘러보기(더미)</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 상식 퀴즈 (전체화면 오버레이) -->
+  <div id="quizWrap" class="hidden">
+    <button id="quizClose" title="닫기">✕ 닫기</button>
+    <iframe id="quizFrame" title="레트로 퀴즈" loading="lazy"></iframe>
+  </div>
+
+  <!-- 결과 모달 -->
+  <div id="resultWrap" class="hidden">
+    <div class="backdrop"></div>
+    <div id="result">
+      <div class="pick"></div>
+      <div class="big"><span class="ic"></span> <span class="rname"></span></div>
+      <div class="meta"></div>
+      <div class="menu-title">📋 대표 메뉴</div>
+      <ul class="menu"></ul>
+      <div class="place-extra hidden">
+        <a class="placelink" target="_blank" rel="noopener">🗺️ 카카오맵에서 보기 ↗</a>
+      </div>
+      <div class="row">
+        <button class="btn" id="againBtn">🎰 한 번 더 뽑기</button>
+        <button class="btn ghost" id="researchBtn">📡 재검색</button>
+      </div>
+    </div>
+  </div>
+
+<script>
+/* ============================================================
+   가챠 점심 — 캡슐 가챠로 점심 식당 뽑기
+   * 데이터/검색/아이콘 로직은 "제우스의 점심"에서 그대로 이어받고,
+     연출만 번개 → 캡슐 가챠 머신으로 교체.
+   ============================================================ */
+
+// ---- 더미 식당 데이터 (실제 API 응답을 흉내) ----
+const DUMMY_POOL = [
+  { name: "김치찌개집",   cat: "한식",   ic: "🍲", menu: [["김치찌개",8000],["제육볶음",9000],["된장찌개",7500],["공기밥",1000]] },
+  { name: "마라탕 천국",  cat: "중식",   ic: "🌶️", menu: [["마라탕(중)",11000],["마라샹궈",15000],["꿔바로우",13000],["콜라",2000]] },
+  { name: "스시 오마카세", cat: "일식",   ic: "🍣", menu: [["점심 오마카세",35000],["모둠초밥",22000],["연어덮밥",13000]] },
+  { name: "파스타 공방",  cat: "양식",   ic: "🍝", menu: [["까르보나라",13000],["토마토 파스타",12000],["마르게리타 피자",16000]] },
+  { name: "분식나라",     cat: "분식",   ic: "🍢", menu: [["떡볶이",4000],["순대",4500],["김밥",3500],["모둠튀김",4000]] },
+  { name: "쌀국수 본점",  cat: "아시안", ic: "🍜", menu: [["양지쌀국수",9500],["분짜",11000],["짜조",6000]] },
+  { name: "치킨파라다이스",cat: "치킨",   ic: "🍗", menu: [["후라이드",18000],["양념치킨",19000],["반반",19000],["생맥주",4000]] },
+  { name: "버거 스테이션", cat: "양식",   ic: "🍔", menu: [["치즈버거",7500],["베이컨버거",9500],["감자튀김",3500]] },
+  { name: "초밥뷔페",     cat: "일식",   ic: "🍱", menu: [["점심 뷔페",19900],["저녁 뷔페",25900],["음료바",0]] },
+  { name: "왕만두집",     cat: "중식",   ic: "🥟", menu: [["고기만두",6000],["김치만두",6000],["만둣국",8000]] },
+  { name: "피자 오븐",    cat: "양식",   ic: "🍕", menu: [["페퍼로니 L",21000],["고르곤졸라 L",23000],["콤비네이션 L",22000]] },
+  { name: "국밥1번지",    cat: "한식",   ic: "🥘", menu: [["돼지국밥",9000],["순대국밥",9000],["수육",18000]] },
+  { name: "타코 아미고",  cat: "멕시칸", ic: "🌮", menu: [["타코 3pcs",12000],["부리또",11000],["나초",8000]] },
+  { name: "라멘 야시장",  cat: "일식",   ic: "🍥", menu: [["돈코츠라멘",10000],["차슈라멘",13000],["교자",5000]] },
+  { name: "샐러드볼",     cat: "샐러드", ic: "🥗", menu: [["닭가슴살 샐러드",9900],["연어 포케",12900],["아보카도볼",11900]] },
+  { name: "할매 백반",    cat: "한식",   ic: "🍚", menu: [["제육백반",8000],["고등어구이",9000],["청국장",7500]] },
+  { name: "전주 비빔밥",   cat: "한식",   ic: "🍛", menu: [["전주비빔밥",9000],["돌솥비빔밥",9500],["육회비빔밥",13000]] },
+  { name: "김밥나라",     cat: "분식",   ic: "🍙", menu: [["참치김밥",3500],["라면",3500],["돈가스",6500]] },
+  { name: "라볶이 명가",   cat: "분식",   ic: "🍜", menu: [["라볶이",5000],["치즈떡볶이",5500],["튀김만두",4000]] },
+  { name: "별다방 카페",   cat: "카페",   ic: "☕", menu: [["아메리카노",4500],["카페라떼",5000],["바닐라라떼",5500],["치즈케이크",6500]] },
+  { name: "디저트 38",    cat: "카페",   ic: "🍰", menu: [["딸기 생크림케이크",7000],["크로플",6000],["아인슈페너",6000]] },
+  { name: "베이글 브런치", cat: "카페",   ic: "🥯", menu: [["플레인 베이글",3500],["베이글 샌드위치",7500],["콜드브루",5000]] },
+  { name: "편의점 도시락", cat: "편의점", ic: "🏪", menu: [["제육 도시락",4500],["불고기 도시락",4900],["삼각김밥",1300],["컵라면",1500]] },
+];
+
+const STATE = { IDLE:"idle", SEARCHING:"searching", READY:"ready", CRANKING:"cranking", CAPSULE:"capsule", OPENING:"opening", RESULT:"result" };
+let state = STATE.IDLE;
+let restos = [];        // 현재 돔에 담긴 식당 목록(data 배열)
+let winner = null;      // 이번에 뽑힌 식당
+let POOL = DUMMY_POOL;  // 추첨 풀 (더미 또는 카카오 실데이터)
+let usingReal = false;
+
+const $ = s => document.querySelector(s);
+const machine  = $("#machine");
+const dome     = $("#dome");
+const knob     = $("#knob");
+const tray     = $("#tray");
+const hint     = $("#hint");
+const searchBtn= $("#searchBtn");
+const quizBtn  = $("#quizBtn");
+const loader   = $("#loader");
+const result   = $("#resultWrap");
+const flash    = $("#flash");
+
+// ---- 햅틱 ----
+function buzz(p) { if (navigator.vibrate) navigator.vibrate(p); }
+
+// ---- 컨페티 캔버스 ----
+const fx = $("#fx"), fxc = fx.getContext("2d");
+function sizeFx() {
+  const dpr = window.devicePixelRatio || 1;
+  fx.width = innerWidth * dpr; fx.height = innerHeight * dpr;
+  fx.style.width = innerWidth + "px"; fx.style.height = innerHeight + "px";
+  fxc.setTransform(dpr, 0, 0, dpr, 0, 0);
+}
+sizeFx(); addEventListener("resize", sizeFx);
+
+let confetti = [], confRAF = null;
+function confettiBurst(x, y, base) {
+  const colors = [base, "#ffd34e", "#ff7eb6", "#5b9bff", "#5ed16a", "#ffffff"];
+  for (let i = 0; i < 110; i++) {
+    const a = Math.random() * Math.PI * 2, sp = 3 + Math.random() * 8;
+    confetti.push({
+      x, y, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp - 5,
+      g: 0.18 + Math.random() * 0.14, s: 5 + Math.random() * 7,
+      rot: Math.random() * 6, vr: (Math.random() * 2 - 1) * 0.35,
+      col: colors[i % colors.length], life: 0, max: 55 + Math.random() * 45,
+    });
+  }
+  if (!confRAF) confRAF = requestAnimationFrame(confLoop);
+}
+function confLoop() {
+  fxc.clearRect(0, 0, innerWidth, innerHeight);
+  for (const p of confetti) {
+    p.life++; p.vy += p.g; p.x += p.vx; p.y += p.vy; p.rot += p.vr;
+    const a = Math.max(0, 1 - p.life / p.max);
+    fxc.save(); fxc.translate(p.x, p.y); fxc.rotate(p.rot); fxc.globalAlpha = a;
+    fxc.fillStyle = p.col; fxc.fillRect(-p.s / 2, -p.s / 2, p.s, p.s * 0.62); fxc.restore();
+  }
+  confetti = confetti.filter(p => p.life < p.max);
+  if (confetti.length) confRAF = requestAnimationFrame(confLoop);
+  else { confRAF = null; fxc.clearRect(0, 0, innerWidth, innerHeight); }
+}
+
+// ---- 상태 전환 ----
+function setHint(t) { hint.textContent = t; }
+
+function go(next) {
+  state = next;
+  searchBtn.classList.add("hidden");
+  quizBtn.classList.add("hidden");
+  loader.classList.add("hidden");
+  result.classList.add("hidden");
+  machine.classList.remove("ready");
+
+  if (next === STATE.IDLE) {
+    clearMachine();
+    searchBtn.classList.remove("hidden");
+    quizBtn.classList.remove("hidden");
+    setHint("");
+  } else if (next === STATE.SEARCHING) {
+    loader.classList.remove("hidden");
+    setHint("");
+  } else if (next === STATE.READY) {
+    quizBtn.classList.remove("hidden");   // 게임 화면에서도 하단에 퀴즈 버튼 노출
+    machine.classList.add("ready");
+    setHint("🪙 손잡이를 돌려 캡슐을 뽑으세요!");
+  } else if (next === STATE.CAPSULE) {
+    setHint("🎁 캡슐을 톡! 눌러 열어보세요");
+  } else if (next === STATE.RESULT) {
+    result.classList.remove("hidden");
+  }
+}
+
+function clearMachine() {
+  dome.innerHTML = "";
+  tray.innerHTML = '<span class="tray-lip"></span>';
+  machine.querySelectorAll(".dropping").forEach(d => d.remove());
+  restos = []; winner = null;
+}
+
+/* ============================================================
+   카테고리 필터 (제우스의 점심과 동일)
+   ============================================================ */
+const CATS = ["전체", "한식", "중식", "일식", "양식", "분식", "카페", "기타"];
+const MAIN_CATS = ["한식", "중식", "일식", "양식", "분식", "카페"];
+const selectedCats = new Set();   // 비어 있으면 = 전체
+
+function catMatch(r) {
+  if (selectedCats.size === 0) return true;
+  for (const c of selectedCats) {
+    if (c === "기타" ? !MAIN_CATS.includes(r.cat) : r.cat === c) return true;
+  }
+  return false;
+}
+function buildCats() {
+  const wrap = $("#cats"); wrap.innerHTML = "";
+  CATS.forEach(c => {
+    const on = (c === "전체") ? selectedCats.size === 0 : selectedCats.has(c);
+    const b = document.createElement("button");
+    b.className = "chip" + (on ? " active" : "");
+    b.textContent = c;
+    b.addEventListener("click", () => selectCat(c));
+    wrap.appendChild(b);
+  });
+}
+function selectCat(c) {
+  if (state === STATE.SEARCHING || state === STATE.CRANKING || state === STATE.OPENING) return;
+  if (c === "전체") selectedCats.clear();
+  else if (selectedCats.has(c)) selectedCats.delete(c);
+  else selectedCats.add(c);
+  buildCats();
+  // 이미 캡슐이 채워져 있으면 즉시 다시 채우기
+  if (restos.length || state === STATE.READY || state === STATE.CAPSULE || state === STATE.RESULT) {
+    result.classList.add("hidden");
+    fillDome();
+    go(STATE.READY);
+  }
+}
+function poolForCat() {
+  const pool = POOL.filter(catMatch);
+  const n = Math.min(pool.length, 10 + Math.floor(Math.random() * 5));
+  return [...pool].sort(() => Math.random() - 0.5).slice(0, n);
+}
+
+/* ============================================================
+   실제 주변 식당 검색 — 카카오맵 JavaScript SDK(services)
+   (제우스의 점심과 동일 로직)
+   ============================================================ */
+const KEY_LS = "kakaoJsKey";
+
+/* ───────── 카카오 JavaScript 키 (앱 내장) ─────────
+   ▸ 카카오 개발자센터 → 내 애플리케이션 → 앱 키 → "JavaScript 키"
+   ▸ JS 키는 클라이언트 노출이 불가피하므로 [플랫폼 → Web → 사이트 도메인]에
+     배포 주소(GitHub Pages 도메인)를 등록해 무단 사용을 차단하세요.
+   ▸ 비워두면 사용자가 직접 키를 입력하는 모드로 동작합니다. */
+const DEFAULT_KAKAO_JS_KEY = "53b5ece312796549c932b5d37b1bcb82";
+
+const getKey = () => {
+  const saved = (localStorage.getItem(KEY_LS) || "").trim();
+  return saved || DEFAULT_KAKAO_JS_KEY.trim();
+};
+
+// 키가 내장돼 있으면 키 버튼을 숨김
+if (DEFAULT_KAKAO_JS_KEY.trim()) {
+  const _kb = document.getElementById("keyBtn");
+  if (_kb) _kb.style.display = "none";
+}
+
+let sdkPromise = null;
+function loadKakaoSdk(key) {
+  if (window.kakao && window.kakao.maps && window.kakao.maps.services) return Promise.resolve();
+  if (sdkPromise) return sdkPromise;
+  sdkPromise = new Promise((resolve, reject) => {
+    const s = document.createElement("script");
+    s.src = "https://dapi.kakao.com/v2/maps/sdk.js?appkey=" +
+            encodeURIComponent(key) + "&libraries=services&autoload=false";
+    s.onload = () => window.kakao.maps.load(resolve);
+    s.onerror = () => { sdkPromise = null; reject(new Error("sdk-load")); };
+    document.head.appendChild(s);
+  });
+  return sdkPromise;
+}
+
+function getPosition() {
+  return new Promise((resolve, reject) => {
+    if (!navigator.geolocation) { reject({ code: 0 }); return; }
+    navigator.geolocation.getCurrentPosition(
+      p => resolve(p.coords), err => reject(err),
+      { enableHighAccuracy: true, timeout: 8000, maximumAge: 60000 });
+  });
+}
+
+function categorySearch(ps, code, loc, radius, page) {
+  return new Promise(resolve => {
+    ps.categorySearch(code, (data, status, pg) => {
+      const ok = status === kakao.maps.services.Status.OK;
+      resolve({ list: ok ? data : [], hasNext: ok && pg && pg.hasNextPage });
+    }, { location: loc, radius, sort: kakao.maps.services.SortBy.DISTANCE, page });
+  });
+}
+
+async function fetchAllPages(code, loc, radius, maxPages = 3) {
+  const ps = new kakao.maps.services.Places();
+  let all = [];
+  for (let p = 1; p <= maxPages; p++) {
+    const { list, hasNext } = await categorySearch(ps, code, loc, radius, p);
+    all = all.concat(list);
+    if (!hasNext) break;
+  }
+  return all;
+}
+
+async function fetchKakao(coords, key) {
+  await loadKakaoSdk(key);
+  const loc = new kakao.maps.LatLng(coords.latitude, coords.longitude);
+  const [food, cafe] = await Promise.all([
+    fetchAllPages("FD6", loc, 1200),   // 음식점
+    fetchAllPages("CE7", loc, 1200),   // 카페
+  ]);
+  const seen = new Set();
+  return [...food, ...cafe]
+    .filter(d => { if (seen.has(d.id)) return false; seen.add(d.id); return true; })
+    .map(mapDoc);
+}
+
+function mapDoc(d) {
+  const cat = bucketOf(d.category_name, d.category_group_code);
+  return {
+    name: d.place_name,
+    cat,
+    ic: iconFor(cat, d.category_name, d.place_name),
+    menu: [],
+    dist: d.distance ? parseInt(d.distance, 10) : null,
+    phone: d.phone || "",
+    url: d.place_url || "",
+    addr: d.road_address_name || d.address_name || "",
+  };
+}
+
+function bucketOf(catName, group) {
+  if (group === "CE7") return "카페";
+  const s = catName || "";
+  if (s.includes("분식")) return "분식";
+  if (s.includes("일식") || s.includes("초밥") || s.includes("돈까스") || s.includes("돈가스") || s.includes("일본")) return "일식";
+  if (s.includes("중식") || s.includes("중국")) return "중식";
+  if (s.includes("치킨")) return "치킨";
+  if (s.includes("양식") || s.includes("이탈리") || s.includes("패밀리") || s.includes("패스트") || s.includes("햄버거") || s.includes("피자")) return "양식";
+  if (s.includes("아시아") || s.includes("베트남") || s.includes("태국") || s.includes("인도")) return "아시안";
+  if (s.includes("뷔페")) return "양식";
+  if (s.includes("한식") || s.includes("국밥") || s.includes("백반") || s.includes("찌개") || s.includes("고기") || s.includes("해장") || s.includes("국수") || s.includes("죽")) return "한식";
+  return "기타";
+}
+
+const CAT_ICON = { 한식:"🍚", 중식:"🥡", 일식:"🍣", 양식:"🍝", 분식:"🍢",
+  아시안:"🍜", 치킨:"🍗", 카페:"☕", 멕시칸:"🌮", 샐러드:"🥗", 편의점:"🏪" };
+
+// 카테고리 → 캡슐 색
+const CAT_COLOR = { 한식:"#ff6b5e", 중식:"#ffce4a", 일식:"#5b9bff", 양식:"#5ed16a",
+  분식:"#ff7eb6", 아시안:"#3fd0c9", 치킨:"#ff9f43", 카페:"#b07a52",
+  멕시칸:"#f76d3c", 샐러드:"#7bd66a", 편의점:"#54a0ff", 기타:"#a98bf0" };
+function colorFor(cat) { return CAT_COLOR[cat] || "#a98bf0"; }
+
+// 세부 업종(category_name) 키워드 → 이모지. 위에서부터 우선 적용(구체적인 것 먼저).
+const ICON_RULES = [
+  [["치킨", "닭강정", "닭요리", "닭갈비", "찜닭"], "🍗"],
+  [["피자"], "🍕"],
+  [["핫도그"], "🌭"],
+  [["햄버거", "버거", "패스트푸드"], "🍔"],
+  [["곱창", "막창", "대창"], "img:곱창"],
+  [["족발", "보쌈"], "img:족발"],
+  [["초밥", "스시", "오마카세"], "🍣"],
+  [["횟집", "물회", "생선회", "해산물", "해물", "수산", "활어", "조개", "대게", "장어", "연어", "참치", "오징어", "아구", "아귀", "낙지", "문어", "고등어", "갈치"], "🐟"],
+  [["삼겹", "갈비", "구이", "고기", "육류", "정육", "스테이크", "바베큐", "바비큐", "불고기", "양꼬치"], "🍖"],
+  [["라멘", "라면", "우동", "소바"], "🍜"],
+  [["돈까스", "돈가스", "카츠"], "🍱"],
+  [["마라", "훠궈", "샹궈"], "🌶️"],
+  [["짜장", "짬뽕", "중식", "중국집", "중국요리"], "🥡"],
+  [["만두", "교자"], "🥟"],
+  [["김밥"], "🍙"],
+  [["순대"], "img:순대"],
+  [["떡볶이", "떡복이"], "img:떡볶이"],
+  [["분식", "튀김"], "🍢"],
+  [["떡집", "시루", "떡카페", "떡케이크", "떡,한과", "떡방", "방앗간", "한과", "경단"], "🍡"],
+  [["국밥", "설렁탕", "곰탕", "해장", "순대국", "감자탕", "갈비탕", "삼계탕", "뼈다귀"], "🍲"],
+  [["찌개", "전골", "순두부", "두부", "청국장"], "🍲"],
+  [["칼국수", "국수", "냉면", "쌀국수", "막국수"], "🍜"],
+  [["본죽", "죽전문", "전복죽"], "🥣"],
+  [["베트남"], "🍜"],
+  [["태국", "타이음식"], "🍤"],
+  [["인도", "카레"], "🍛"],
+  [["타코", "멕시", "부리또"], "🌮"],
+  [["파스타", "스파게티", "이탈리", "리조또"], "🍝"],
+  [["샐러드", "포케"], "🥗"],
+  [["샌드위치", "치아바타", "토스트", "샌드"], "🥪"],
+  [["베이커리", "베이글", "제과", "페이스트리", "도넛"], "🥐"],
+  [["케이크", "디저트", "와플", "크로플", "아이스크림", "빙수", "마카롱"], "🍰"],
+  [["커피", "카페"], "☕"],
+  [["이자카야", "호프", "맥주", "와인", "술집", "주점", "포차", "칵테일", "펍"], "🍻"],
+  [["도시락"], "🍱"],
+  [["뷔페"], "🍽️"],
+  [["구내식당"], "🍱"],
+  [["편의점"], "🏪"],
+];
+function iconFor(cat, catName, name) {
+  for (const src of [name || "", catName || ""]) {
+    for (const [keys, emoji] of ICON_RULES) {
+      if (keys.some(k => src.includes(k))) return emoji;
+    }
+  }
+  return CAT_ICON[cat] || "🍴";
+}
+
+// 일부 메뉴는 이모지 대신 커스텀 SVG 일러스트로 표시 (족발/곱창/순대/떡볶이)
+const CUSTOM_ICONS = (() => {
+  const slice = (x, y) =>
+    `<g transform="translate(${x} ${y}) rotate(-35)">` +
+    `<ellipse rx="3.7" ry="7.6" fill="#f1d0bb" stroke="#a86b41" stroke-width="1.5"/>` +
+    `<ellipse rx="1.5" ry="3.2" fill="#9a6a4f"/></g>`;
+  let slices = "";
+  for (let i = 0; i < 8; i++) slices += slice(14 + i * 2.4, 41 - i * 1.15);
+  for (let i = 0; i < 8; i++) slices += slice(30 + i * 2.4, 43 - i * 1.15);
+  const jokbal =
+    `<svg viewBox="0 0 64 64" width="1em" height="1em" style="display:inline-block;vertical-align:middle" xmlns="http://www.w3.org/2000/svg">` +
+    `<ellipse cx="32" cy="51" rx="25" ry="4.5" fill="rgba(0,0,0,.18)"/>` +
+    `<ellipse cx="32" cy="38" rx="28" ry="17" fill="#fff" stroke="#e3e3e3" stroke-width="1"/>` +
+    `<circle cx="25" cy="22" r="7" fill="#83c23f"/><circle cx="33" cy="19" r="8" fill="#8fce4b"/>` +
+    `<circle cx="41" cy="24" r="6.5" fill="#74b531"/>` +
+    slices +
+    `</svg>`;
+
+  let spiral = "";
+  for (let t = 0; t <= Math.PI * 6; t += 0.32) {
+    const r = 1.6 + 0.55 * t;
+    spiral += (t === 0 ? "M" : "L") +
+      (31 + r * Math.cos(t)).toFixed(1) + " " + (27 + r * Math.sin(t)).toFixed(1);
+  }
+  const gobchang =
+    `<svg viewBox="0 0 64 64" width="1em" height="1em" style="display:inline-block;vertical-align:middle" xmlns="http://www.w3.org/2000/svg">` +
+    `<g fill="none" stroke="#a9603a" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">` +
+    `<ellipse cx="32" cy="33" rx="27" ry="24" fill="#fbf3e6"/>` +
+    `<path d="${spiral}" stroke="#8c4a2b" stroke-width="2.6"/>` +
+    `<circle cx="16" cy="43" r="2.8" fill="#fff"/>` +
+    `<circle cx="21.5" cy="46.5" r="2.8" fill="#fff"/>` +
+    `<circle cx="16.5" cy="49.5" r="2.8" fill="#fff"/>` +
+    `<g fill="#f0d9b8">` +
+    `<rect x="37" y="42" width="8" height="5.4" rx="2.4" transform="rotate(20 41 44.7)"/>` +
+    `<rect x="43" y="47" width="8" height="5.4" rx="2.4" transform="rotate(-12 47 49.7)"/>` +
+    `</g></g></svg>`;
+
+  let coil = "";
+  for (let t = 0; t <= Math.PI * 5; t += 0.3) {
+    const r = 2.2 + 0.62 * t;
+    coil += (t === 0 ? "M" : "L") +
+      (33 + r * Math.cos(t)).toFixed(1) + " " + (26 + r * Math.sin(t)).toFixed(1);
+  }
+  const sdSlice = (x, y, rot) =>
+    `<g transform="translate(${x} ${y}) rotate(${rot})">` +
+    `<ellipse rx="3.7" ry="5.2" fill="#46322c" stroke="#2b1e1a" stroke-width="1.3"/>` +
+    `<circle cx="-1" cy="-1" r=".7" fill="#d9c9ad"/><circle cx="1.2" cy="1.4" r=".7" fill="#cdb492"/>` +
+    `<circle cx=".4" cy="-1.9" r=".55" fill="#c7ad88"/></g>`;
+  const sundae =
+    `<svg viewBox="0 0 64 64" width="1em" height="1em" style="display:inline-block;vertical-align:middle" xmlns="http://www.w3.org/2000/svg">` +
+    `<ellipse cx="32" cy="33" rx="27" ry="24" fill="#fbf3e6" stroke="#a9603a" stroke-width="2.2"/>` +
+    `<ellipse cx="32" cy="33" rx="22" ry="19" fill="none" stroke="#ecdcc2" stroke-width="1.4"/>` +
+    `<path d="${coil}" fill="none" stroke="#3c2a25" stroke-width="5.2" stroke-linecap="round" stroke-linejoin="round"/>` +
+    `<path d="${coil}" fill="none" stroke="#7a5247" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>` +
+    sdSlice(15, 39, -20) + sdSlice(19.5, 45, -6) + sdSlice(25.5, 49, 10) +
+    `<g fill="#c9b48a"><circle cx="44" cy="50" r=".8"/><circle cx="46.5" cy="51.5" r=".8"/>` +
+    `<circle cx="45" cy="52.6" r=".7"/><circle cx="47.6" cy="49.6" r=".7"/></g>` +
+    `</svg>`;
+
+  const tteok = (x, y, rot) =>
+    `<g transform="translate(${x} ${y}) rotate(${rot})">` +
+    `<rect x="-5" y="-2.6" width="10" height="5.2" rx="2.6" fill="#f7f0e3" stroke="#d8c9af" stroke-width="1"/></g>`;
+  const eomuk = (x, y, rot) =>
+    `<g transform="translate(${x} ${y}) rotate(${rot})">` +
+    `<rect x="-4.5" y="-4" width="9" height="8" rx="1.8" fill="#e3953f" stroke="#bf722a" stroke-width="1"/></g>`;
+  const ddeokbokki =
+    `<svg viewBox="0 0 64 64" width="1em" height="1em" style="display:inline-block;vertical-align:middle" xmlns="http://www.w3.org/2000/svg">` +
+    `<ellipse cx="32" cy="33" rx="27" ry="24" fill="#ffffff" stroke="#e3e3e3" stroke-width="1.6"/>` +
+    `<ellipse cx="32" cy="34" rx="22.5" ry="19.5" fill="#e23c1e"/>` +
+    `<ellipse cx="32" cy="32.5" rx="19" ry="15.5" fill="#ec5028"/>` +
+    eomuk(41, 36, -15) + eomuk(24, 39, 18) +
+    tteok(19, 23, 25) + tteok(45, 27, -30) + tteok(16, 34, 82) +
+    tteok(22, 45, -12) + tteok(46, 43, 22) + tteok(33, 48, -42) +
+    `<circle cx="32" cy="33" r="4.6" fill="#fff" stroke="#e6dfcf" stroke-width="1"/>` +
+    `<g fill="#54a23a"><circle cx="26" cy="30" r="1"/><circle cx="37" cy="31" r="1"/>` +
+    `<circle cx="29" cy="41" r="1"/><circle cx="35" cy="40" r="1"/><circle cx="31" cy="27" r=".9"/></g>` +
+    `<g fill="#f4ead2"><circle cx="27.5" cy="35.5" r=".7"/><circle cx="36.5" cy="35.5" r=".7"/>` +
+    `<circle cx="32" cy="40" r=".7"/></g>` +
+    `</svg>`;
+
+  return { "img:족발": jokbal, "img:곱창": gobchang, "img:순대": sundae, "img:떡볶이": ddeokbokki };
+})();
+
+function iconHTML(ic) { return CUSTOM_ICONS[ic] || ic; }
+
+// ---- 식당 검색 ----
+async function search() {
+  const key = getKey();
+  if (!key) { openKeyModal(); return; }
+
+  go(STATE.SEARCHING);
+  try {
+    const coords = await getPosition();
+    const list = await fetchKakao(coords, key);
+    if (!list.length) throw new Error("empty");
+    POOL = list; usingReal = true;
+    fillDome(); go(STATE.READY);
+  } catch (err) {
+    POOL = DUMMY_POOL; usingReal = false;
+    fillDome(); go(STATE.READY);
+    setHint(fallbackMsg(err));
+    setTimeout(() => { if (state === STATE.READY) setHint("🪙 손잡이를 돌려 캡슐을 뽑으세요!"); }, 2800);
+  }
+}
+function fallbackMsg(err) {
+  if (err && err.code === 1) return "📍 위치 권한이 거부돼 더미 데이터로 진행합니다";
+  if (err && err.message === "empty") return "🤔 주변에서 식당을 못 찾아 더미로 진행합니다";
+  if (err && err.message === "sdk-load") return "🔑 키/도메인을 확인하세요 — 더미로 진행합니다";
+  return "⚠️ 불러오지 못해 더미 데이터로 진행합니다";
+}
+
+// ---- 돔에 캡슐 채우기 ----
+function fillDome(list) {
+  restos = list || poolForCat();
+  winner = null;
+  tray.innerHTML = '<span class="tray-lip"></span>';
+  dome.innerHTML = "";
+  restos.forEach((d, i) => {
+    const c = document.createElement("div");
+    c.className = "capsule";
+    c.style.setProperty("--cc", colorFor(d.cat));
+    // 돔 안에 랜덤 배치 (아래쪽으로 쌓이도록 편향)
+    const px = 12 + Math.random() * 76;
+    const py = 34 + Math.pow(Math.random(), 0.7) * 56;   // 하단 밀집
+    const rot = (Math.random() * 44 - 22);
+    c.style.left = px + "%";
+    c.style.top = py + "%";
+    c.style.setProperty("--rot", rot + "deg");
+    c.style.animationDelay = (i * 35) + "ms";
+    dome.appendChild(c);
+  });
+}
+
+// ---- 손잡이 돌리기 → 캡슐 배출 ----
+function crank() {
+  if (state !== STATE.READY || !restos.length) return;
+  state = STATE.CRANKING;
+  setHint("");
+  buzz(20);
+  machine.classList.remove("ready");
+  knob.classList.add("spin");
+  machine.classList.add("shake");
+
+  winner = restos[Math.floor(Math.random() * restos.length)];
+
+  const drop = document.createElement("div");
+  drop.className = "dropping";
+  drop.style.setProperty("--cc", colorFor(winner.cat));
+  machine.appendChild(drop);
+
+  drop.addEventListener("animationend", () => {
+    drop.remove();
+    knob.classList.remove("spin");
+    machine.classList.remove("shake");
+    showTrayCapsule();
+  }, { once: true });
+}
+
+function showTrayCapsule() {
+  buzz([0, 28, 38, 28]);
+  const cc = colorFor(winner.cat);
+  tray.innerHTML =
+    '<span class="tray-lip"></span>' +
+    `<div class="bigcap" id="bigcap" style="--cc:${cc}">` +
+      `<div class="bhalf top"></div>` +
+      `<div class="bhalf bottom"></div>` +
+      `<div class="breveal">${iconHTML(winner.ic)}</div>` +
+    `</div>`;
+  go(STATE.CAPSULE);
+  $("#bigcap").addEventListener("click", openCapsule, { once: true });
+}
+
+function openCapsule() {
+  if (state !== STATE.CAPSULE) return;
+  state = STATE.OPENING;
+  const cap = $("#bigcap");
+  cap.classList.add("open");
+  buzz([0, 60, 40, 90]);
+
+  flash.style.opacity = .7;
+  setTimeout(() => flash.style.opacity = 0, 120);
+
+  const r = cap.getBoundingClientRect();
+  confettiBurst(r.left + r.width / 2, r.top + r.height / 2, colorFor(winner.cat));
+
+  setTimeout(() => showResult(winner), 850);
+}
+
+// ---- 결과 표시 ----
+const PICKS = ["🎉 오늘의 픽!", "✨ 캡슐 속 행운!", "🍀 이걸로 정했다!", "🥁 두구두구… 당첨!", "😋 점심 결정 완료!"];
+function showResult(data) {
+  const dist = (data.dist != null) ? data.dist : 50 + Math.floor(Math.random() * 750);
+  result.querySelector(".pick").textContent = PICKS[Math.floor(Math.random() * PICKS.length)];
+  result.querySelector(".ic").innerHTML = iconHTML(data.ic);
+  result.querySelector(".rname").textContent = data.name;
+  let meta = `${data.cat} · 약 ${dist}m`;
+  if (data.phone) meta += ` · ☎ ${data.phone}`;
+  result.querySelector(".meta").textContent = meta;
+
+  const ul = result.querySelector("ul.menu");
+  const menuTitle = result.querySelector(".menu-title");
+  ul.innerHTML = "";
+  const hasMenu = (data.menu || []).length > 0;
+  menuTitle.classList.toggle("hidden", !hasMenu);
+  ul.classList.toggle("hidden", !hasMenu);
+  (data.menu || []).forEach(([name, price]) => {
+    const li = document.createElement("li");
+    const mn = document.createElement("span"); mn.className = "mn"; mn.textContent = name;
+    const mp = document.createElement("span"); mp.className = "mp";
+    mp.textContent = price > 0 ? price.toLocaleString("ko-KR") + "원" : "무료";
+    li.append(mn, mp);
+    ul.appendChild(li);
+  });
+
+  const extra = result.querySelector(".place-extra");
+  const link = result.querySelector(".placelink");
+  if (data.url) { link.href = data.url; extra.classList.remove("hidden"); }
+  else { extra.classList.add("hidden"); }
+
+  setTimeout(() => go(STATE.RESULT), 250);
+}
+
+// 한 번 더: 같은 풀로 캡슐 다시 채우고 대기
+function resetMachine() {
+  result.classList.add("hidden");
+  fillDome(restos);   // 같은 주변 식당 풀 유지
+  go(STATE.READY);
+}
+
+// ---- API 키 모달 ----
+const keyWrap = $("#keyWrap"), keyInput = $("#keyInput");
+function openKeyModal() {
+  keyInput.value = getKey();
+  keyWrap.classList.remove("hidden");
+  setTimeout(() => keyInput.focus(), 60);
+}
+function closeKeyModal() { keyWrap.classList.add("hidden"); }
+$("#keyBtn").addEventListener("click", openKeyModal);
+$("#keySave").addEventListener("click", () => {
+  const v = keyInput.value.trim();
+  if (!v) { keyInput.focus(); return; }
+  localStorage.setItem(KEY_LS, v);
+  closeKeyModal();
+  search();
+});
+$("#keySkip").addEventListener("click", () => {
+  closeKeyModal();
+  POOL = DUMMY_POOL; usingReal = false;
+  go(STATE.SEARCHING);
+  setTimeout(() => { fillDome(); go(STATE.READY); }, 800);
+});
+keyInput.addEventListener("keydown", e => { if (e.key === "Enter") $("#keySave").click(); });
+keyWrap.querySelector(".backdrop").addEventListener("click", closeKeyModal);
+
+// ---- 상식 퀴즈 오버레이 ----
+const quizWrap = $("#quizWrap"), quizFrame = $("#quizFrame");
+function openQuiz() {
+  if (!quizFrame.src) quizFrame.src = "quiz/index.html";
+  quizWrap.classList.remove("hidden");
+}
+function closeQuiz() { quizWrap.classList.add("hidden"); }
+quizBtn.addEventListener("click", openQuiz);
+$("#quizClose").addEventListener("click", closeQuiz);
+
+// ---- 이벤트 바인딩 ----
+searchBtn.addEventListener("click", search);
+$("#researchBtn").addEventListener("click", search);
+$("#againBtn").addEventListener("click", resetMachine);
+knob.addEventListener("click", crank);
+
+// ---- PWA: 서비스워커 등록 ----
+if ("serviceWorker" in navigator) {
+  addEventListener("load", () => {
+    navigator.serviceWorker.register("sw.js").catch(err => console.warn("SW 등록 실패:", err));
+  });
+}
+
+// 시작
+buildCats();
+go(STATE.IDLE);
+</script>
+</body>
+</html>

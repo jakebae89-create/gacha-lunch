@@ -1,0 +1,21 @@
+{
+  "id": "/gacha-lunch/",
+  "name": "가챠 점심",
+  "short_name": "가챠 점심",
+  "description": "캡슐 가챠로 오늘 점심 식당을 뽑아주는 앱 (+ 레트로 상식 퀴즈)",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "display_override": ["standalone", "minimal-ui"],
+  "orientation": "portrait",
+  "dir": "ltr",
+  "lang": "ko",
+  "categories": ["food", "lifestyle", "games"],
+  "background_color": "#fff3f2",
+  "theme_color": "#ff6b5e",
+  "icons": [
+    { "src": "./icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "./icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "./icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
