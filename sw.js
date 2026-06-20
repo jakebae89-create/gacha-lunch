@@ -1,5 +1,5 @@
 /* 가챠 점심 — 서비스워커 (오프라인 앱셸 캐시) */
-const CACHE = "gacha-lunch-v1";
+const CACHE = "gacha-lunch-v2";
 const SHELL = [
   "./",
   "./index.html",
