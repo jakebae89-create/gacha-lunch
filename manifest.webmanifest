@@ -1,7 +1,7 @@
 {
   "id": "/gacha-lunch/",
-  "name": "가챠 점심",
-  "short_name": "가챠 점심",
+  "name": "가챠밥",
+  "short_name": "가챠밥",
   "description": "캡슐 가챠로 오늘 점심 식당을 뽑아주는 앱 (+ 레트로 상식 퀴즈)",
   "start_url": "./index.html",
   "scope": "./",

@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
-<title>가챠 점심 🎰 캡슐 뽑아 점심 정하기</title>
+<title>가챠밥 🍚 캡슐 뽑아 점심 정하기</title>
 
 <!-- PWA -->
 <link rel="manifest" href="manifest.webmanifest" />
@@ -12,7 +12,7 @@
 <meta name="mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-<meta name="apple-mobile-web-app-title" content="가챠 점심" />
+<meta name="apple-mobile-web-app-title" content="가챠밥" />
 <link rel="apple-touch-icon" href="apple-touch-icon-180.png" />
 <style>
   :root {
@@ -302,6 +302,27 @@
   }
   .hidden { display: none !important; }
 
+  /* 검색 반경 선택 칩 */
+  .radius-bar {
+    pointer-events: auto; display: flex; align-items: center; gap: 6px; flex-wrap: wrap;
+    justify-content: center;
+  }
+  #radiusBarResult { margin: 14px 0 4px; }
+  .radius-bar .rlabel {
+    font-size: .8rem; font-weight: 800; color: var(--muted); margin-right: 2px;
+  }
+  .radius-bar .rchip {
+    font-family: inherit; font-size: .8rem; font-weight: 800; cursor: pointer;
+    padding: 6px 12px; border-radius: 999px; background: #fff; color: var(--muted);
+    border: 2px solid rgba(0,0,0,.06); box-shadow: 0 2px 5px rgba(0,0,0,.06);
+    transition: background .15s, color .15s, border-color .15s, transform .05s;
+  }
+  .radius-bar .rchip:active { transform: scale(.94); }
+  .radius-bar .rchip.active {
+    background: var(--red); color: #fff; border-color: var(--red);
+    box-shadow: 0 4px 12px rgba(255,107,94,.4);
+  }
+
   /* 검색 로딩 */
   #loader { display: flex; flex-direction: column; align-items: center; gap: 12px; }
   .spinner {
@@ -384,7 +405,7 @@
 </head>
 <body>
   <div id="title">
-    <h1>🎰 가챠 점심</h1>
+    <h1>🍚 가챠밥</h1>
   </div>
 
   <button id="keyBtn" title="카카오 API 키 설정">🔑</button>
@@ -397,7 +418,7 @@
       <div class="gacha-head" id="dome"></div>
       <div class="gacha-neck"></div>
       <div class="gacha-body">
-        <div class="brand">GACHA 점심</div>
+        <div class="brand">GACHA 밥</div>
         <div class="coinslot">🪙 INSERT</div>
         <div class="knob" id="knob"><span class="hub"></span></div>
         <div class="knob-label">PUSH ▸ 돌리기</div>
@@ -411,8 +432,15 @@
 
   <div id="ui">
     <div id="hint"></div>
-    <button class="btn" id="searchBtn">📡 주변 식당 캡슐 채우기</button>
-    <button class="btn ghost" id="quizBtn">🕹️ 레트로 퀴즈 풀기</button>
+    <div id="radiusBar" class="radius-bar">
+      <button class="rchip" data-r="500">500m</button>
+      <button class="rchip active" data-r="1000">1km</button>
+      <button class="rchip" data-r="2000">2km</button>
+      <button class="rchip" data-r="3000">3km</button>
+      <button class="rchip" data-r="5000">5km</button>
+    </div>
+    <button class="btn" id="searchBtn">주변 식당 검색</button>
+    <button class="btn ghost" id="quizBtn">기다리면서 퀴즈 풀기</button>
     <div id="loader" class="hidden">
       <div class="spinner"></div>
       <div style="font-size:.9rem;color:var(--muted)">주변 식당을 캡슐에 담는 중…</div>
@@ -456,9 +484,16 @@
       <div class="place-extra hidden">
         <a class="placelink" target="_blank" rel="noopener">🗺️ 카카오맵에서 보기 ↗</a>
       </div>
+      <div id="radiusBarResult" class="radius-bar">
+          <button class="rchip" data-r="500">500m</button>
+        <button class="rchip" data-r="1000">1km</button>
+        <button class="rchip" data-r="2000">2km</button>
+        <button class="rchip" data-r="3000">3km</button>
+        <button class="rchip" data-r="5000">5km</button>
+      </div>
       <div class="row">
-        <button class="btn" id="againBtn">🎰 한 번 더 뽑기</button>
-        <button class="btn ghost" id="researchBtn">📡 재검색</button>
+        <button class="btn" id="againBtn">한 번 더 뽑기</button>
+        <button class="btn ghost" id="researchBtn">식당 재검색</button>
       </div>
     </div>
   </div>
@@ -501,8 +536,11 @@ const STATE = { IDLE:"idle", SEARCHING:"searching", READY:"ready", CRANKING:"cra
 let state = STATE.IDLE;
 let restos = [];        // 현재 돔에 담긴 식당 목록(data 배열)
 let winner = null;      // 이번에 뽑힌 식당
+const drawnKeys = new Set(); // 지금까지 뽑힌 식당 기록(중복 방지, 반경 변경·재검색해도 유지)
+let cycleReset = false; // 이번 추첨이 기록 초기화 후 첫 추첨인지
 let POOL = DUMMY_POOL;  // 추첨 풀 (더미 또는 카카오 실데이터)
 let usingReal = false;
+let radiusM = 1000;     // 검색 반경(m) — 반경 칩으로 변경
 
 const $ = s => document.querySelector(s);
 const machine  = $("#machine");
@@ -515,6 +553,26 @@ const quizBtn  = $("#quizBtn");
 const loader   = $("#loader");
 const result   = $("#resultWrap");
 const flash    = $("#flash");
+const radiusBar= $("#radiusBar");
+
+// ---- 검색 반경 선택 (메인·결과 화면 두 곳 동기화) ----
+function syncRadiusChips() {
+  document.querySelectorAll(".radius-bar .rchip").forEach(c =>
+    c.classList.toggle("active", parseInt(c.dataset.r, 10) === radiusM));
+}
+function setRadius(m) {
+  radiusM = m;
+  syncRadiusChips();
+  buzz(10);
+}
+document.querySelectorAll(".radius-bar").forEach(bar => {
+  bar.addEventListener("click", (e) => {
+    const chip = e.target.closest(".rchip");
+    if (!chip) return;
+    setRadius(parseInt(chip.dataset.r, 10));
+  });
+});
+syncRadiusChips();
 
 // ---- 햅틱 ----
 function buzz(p) { if (navigator.vibrate) navigator.vibrate(p); }
@@ -563,6 +621,7 @@ function go(next) {
   state = next;
   searchBtn.classList.add("hidden");
   quizBtn.classList.add("hidden");
+  radiusBar.classList.add("hidden");
   loader.classList.add("hidden");
   result.classList.add("hidden");
   machine.classList.remove("ready");
@@ -571,6 +630,7 @@ function go(next) {
     clearMachine();
     searchBtn.classList.remove("hidden");
     quizBtn.classList.remove("hidden");
+    radiusBar.classList.remove("hidden");
     setHint("");
   } else if (next === STATE.SEARCHING) {
     loader.classList.remove("hidden");
@@ -578,7 +638,7 @@ function go(next) {
   } else if (next === STATE.READY) {
     quizBtn.classList.remove("hidden");   // 게임 화면에서도 하단에 퀴즈 버튼 노출
     machine.classList.add("ready");
-    setHint("🪙 손잡이를 돌려 캡슐을 뽑으세요!");
+    setHint("손잡이를 돌려 캡슐을 뽑으세요!");
   } else if (next === STATE.CAPSULE) {
     setHint("🎁 캡슐을 톡! 눌러 열어보세요");
   } else if (next === STATE.RESULT) {
@@ -705,16 +765,52 @@ async function fetchAllPages(code, loc, radius, maxPages = 3) {
   return all;
 }
 
-async function fetchKakao(coords, key) {
+// 두 좌표 간 거리(m) — 실제 내 위치 기준 거리 재계산용
+function haversine(lat1, lng1, lat2, lng2) {
+  const R = 6371000, toR = Math.PI / 180;
+  const dLat = (lat2 - lat1) * toR, dLng = (lng2 - lng1) * toR;
+  const a = Math.sin(dLat/2) ** 2 +
+            Math.cos(lat1*toR) * Math.cos(lat2*toR) * Math.sin(dLng/2) ** 2;
+  return 2 * R * Math.asin(Math.sqrt(a));
+}
+
+// 카카오 카테고리 검색은 1회당 최대 45개만 반환 → 넓은 반경은 격자로 쪼개 여러 번 검색
+function searchPoints(lat, lng, radius) {
+  if (radius <= 1000) return [{ lat, lng, r: radius }];   // 좁은 반경은 단일 검색
+  const step = Math.max(1100, radius / 2);                 // 서브 중심 간격(m)
+  const sub  = Math.round(step * 0.8);                     // 각 서브 검색 반경(m)
+  const mLat = 111320, mLng = 111320 * Math.cos(lat * Math.PI / 180);
+  const pts = [];
+  for (let dy = -radius; dy <= radius; dy += step)
+    for (let dx = -radius; dx <= radius; dx += step) {
+      if (Math.hypot(dx, dy) > radius) continue;           // 원 밖 지점 제외
+      pts.push({ lat: lat + dy / mLat, lng: lng + dx / mLng, r: sub });
+    }
+  return pts.length ? pts : [{ lat, lng, r: radius }];
+}
+
+async function fetchKakao(coords, key, radius = 1000) {
   await loadKakaoSdk(key);
-  const loc = new kakao.maps.LatLng(coords.latitude, coords.longitude);
-  const [food, cafe] = await Promise.all([
-    fetchAllPages("FD6", loc, 1200),   // 음식점
-    fetchAllPages("CE7", loc, 1200),   // 카페
-  ]);
+  const { latitude: uLat, longitude: uLng } = coords;
+  const pts = searchPoints(uLat, uLng, radius);
+
+  const tasks = [];
+  for (const p of pts) {
+    const loc = new kakao.maps.LatLng(p.lat, p.lng);
+    tasks.push(fetchAllPages("FD6", loc, p.r));   // 음식점
+    tasks.push(fetchAllPages("CE7", loc, p.r));   // 카페
+  }
+  const results = await Promise.all(tasks);
+
   const seen = new Set();
-  return [...food, ...cafe]
+  return results.flat()
     .filter(d => { if (seen.has(d.id)) return false; seen.add(d.id); return true; })
+    .filter(d => {                                  // 실제 반경 밖(격자 모서리)은 제외 + 거리 재계산
+      const dist = haversine(uLat, uLng, +d.y, +d.x);
+      if (dist > radius) return false;
+      d.distance = Math.round(dist);                // 내 위치 기준 거리로 덮어쓰기
+      return true;
+    })
     .map(mapDoc);
 }
 
@@ -735,6 +831,10 @@ function mapDoc(d) {
 function bucketOf(catName, group) {
   if (group === "CE7") return "카페";
   const s = catName || "";
+  // 술집/주점류는 업종이 한식·일식 등으로 잡혀도 무조건 '기타'로 분류
+  if (s.includes("술집") || s.includes("주점") || s.includes("호프") || s.includes("포장마차") ||
+      s.includes("이자카야") || s.includes("와인") || s.includes("칵테일") || s.includes("바(BAR)") ||
+      s.includes("맥주") || s.includes("막걸리") || s.includes("바(bar)")) return "기타";
   if (s.includes("분식")) return "분식";
   if (s.includes("일식") || s.includes("초밥") || s.includes("돈까스") || s.includes("돈가스") || s.includes("일본")) return "일식";
   if (s.includes("중식") || s.includes("중국")) return "중식";
@@ -898,7 +998,7 @@ async function search() {
   go(STATE.SEARCHING);
   try {
     const coords = await getPosition();
-    const list = await fetchKakao(coords, key);
+    const list = await fetchKakao(coords, key, radiusM);
     if (!list.length) throw new Error("empty");
     POOL = list; usingReal = true;
     fillDome(); go(STATE.READY);
@@ -906,7 +1006,7 @@ async function search() {
     POOL = DUMMY_POOL; usingReal = false;
     fillDome(); go(STATE.READY);
     setHint(fallbackMsg(err));
-    setTimeout(() => { if (state === STATE.READY) setHint("🪙 손잡이를 돌려 캡슐을 뽑으세요!"); }, 2800);
+    setTimeout(() => { if (state === STATE.READY) setHint("손잡이를 돌려 캡슐을 뽑으세요!"); }, 2800);
   }
 }
 function fallbackMsg(err) {
@@ -938,6 +1038,12 @@ function fillDome(list) {
   });
 }
 
+// 식당 고유 키 (중복 방지용) — 카카오 url 우선, 없으면 이름+주소
+function restoKey(r) {
+  if (!r) return "";
+  return r.url || (r.name + "|" + (r.addr || ""));
+}
+
 // ---- 손잡이 돌리기 → 캡슐 배출 ----
 function crank() {
   if (state !== STATE.READY || !restos.length) return;
@@ -948,7 +1054,16 @@ function crank() {
   knob.classList.add("spin");
   machine.classList.add("shake");
 
-  winner = restos[Math.floor(Math.random() * restos.length)];
+  // 이미 한 번 나온 식당은 제외하고 추첨 (반경 변경·재검색해도 기록 유지)
+  cycleReset = false;
+  let candidates = restos.filter(r => !drawnKeys.has(restoKey(r)));
+  if (!candidates.length) {        // 풀의 모든 식당이 한 번씩 나옴 → 기록 초기화 후 재시작
+    drawnKeys.clear();
+    candidates = restos;
+    cycleReset = true;
+  }
+  winner = candidates[Math.floor(Math.random() * candidates.length)];
+  drawnKeys.add(restoKey(winner));
 
   const drop = document.createElement("div");
   drop.className = "dropping";
@@ -997,7 +1112,9 @@ function openCapsule() {
 const PICKS = ["🎉 오늘의 픽!", "✨ 캡슐 속 행운!", "🍀 이걸로 정했다!", "🥁 두구두구… 당첨!", "😋 점심 결정 완료!"];
 function showResult(data) {
   const dist = (data.dist != null) ? data.dist : 50 + Math.floor(Math.random() * 750);
-  result.querySelector(".pick").textContent = PICKS[Math.floor(Math.random() * PICKS.length)];
+  result.querySelector(".pick").textContent = cycleReset
+    ? "🔄 모두 한 번씩 나왔어요 — 다시 시작!"
+    : PICKS[Math.floor(Math.random() * PICKS.length)];
   result.querySelector(".ic").innerHTML = iconHTML(data.ic);
   result.querySelector(".rname").textContent = data.name;
   let meta = `${data.cat} · 약 ${dist}m`;
