@@ -401,6 +401,83 @@
     box-shadow: 0 3px 12px rgba(57,255,20,.45);
   }
   #quizClose:active { transform: scale(.95); }
+
+  /* ===== 중간지점 약속 장소 오버레이 ===== */
+  #meetWrap { position: fixed; inset: 0; z-index: 85; display: flex; align-items: center; justify-content: center; padding: 20px; }
+  #meetWrap .backdrop { position: absolute; inset: 0; background: rgba(60,30,26,.42); backdrop-filter: blur(3px); }
+  #meetBox {
+    position: relative; width: 100%; max-width: 380px; max-height: 88vh; overflow-y: auto;
+    background: var(--cream); border: 3px solid #fff; border-radius: 22px;
+    padding: 20px 20px 18px; box-shadow: 0 16px 50px rgba(80,40,30,.4); animation: rise .3s ease;
+  }
+  .meet-x {
+    position: absolute; top: 12px; right: 12px; width: 34px; height: 34px; border-radius: 50%;
+    border: none; cursor: pointer; font-size: 1rem; font-weight: 900; line-height: 1;
+    background: #fff; color: var(--red-deep); box-shadow: 0 2px 6px rgba(0,0,0,.15);
+  }
+  .meet-x:active { transform: scale(.92); }
+  .meet-title { font-size: 1.15rem; font-weight: 900; color: var(--red-deep); padding-right: 36px; }
+  .meet-desc { font-size: .8rem; color: var(--muted); line-height: 1.55; margin: 10px 0 14px; }
+  .meet-desc b { color: var(--ink); }
+
+  #meetList { display: flex; flex-direction: column; gap: 8px; margin-bottom: 12px; }
+  .meet-item {
+    display: flex; align-items: center; gap: 10px; padding: 10px 12px;
+    background: #fff; border-radius: 12px; border: 2px solid rgba(0,0,0,.06);
+  }
+  .meet-item .mi-ic { font-size: 1.1rem; flex: none; }
+  .meet-item .mi-body { flex: 1; min-width: 0; }
+  .meet-item .mi-name { font-size: .9rem; font-weight: 800; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .meet-item .mi-sub { font-size: .72rem; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 2px; }
+  .meet-item .mi-del {
+    border: none; background: rgba(232,80,63,.1); color: var(--red-deep);
+    width: 26px; height: 26px; border-radius: 8px; cursor: pointer; font-weight: 900; font-size: .9rem; flex: none;
+  }
+  .meet-empty { font-size: .82rem; color: var(--muted); text-align: center; padding: 14px 0; }
+
+  .meet-add { margin-bottom: 10px; }
+  .meet-add .btn.ghost { width: 100%; }
+  .meet-search { display: flex; gap: 8px; margin-bottom: 8px; }
+  .meet-search input {
+    flex: 1; min-width: 0; font-family: inherit; font-size: .9rem; padding: 11px 13px;
+    border-radius: 12px; color: var(--ink); background: #fff; border: 2px solid rgba(0,0,0,.12); outline: none;
+  }
+  .meet-search input:focus { border-color: var(--red); }
+  .meet-search .btn { padding: 11px 16px; font-size: .9rem; }
+  .meet-msg { font-size: .78rem; font-weight: 700; color: var(--red-deep); text-align: center; margin: 0 0 10px; }
+
+  .meet-results { display: flex; flex-direction: column; gap: 6px; margin-bottom: 12px; max-height: 210px; overflow-y: auto; }
+  .meet-results .mr {
+    text-align: left; font-family: inherit; cursor: pointer; padding: 9px 12px;
+    background: #fff; border: 2px solid rgba(0,0,0,.07); border-radius: 10px;
+  }
+  .meet-results .mr:active { transform: scale(.98); }
+  .meet-results .mr .mr-name { font-size: .88rem; font-weight: 800; color: var(--ink); }
+  .meet-results .mr .mr-addr { font-size: .72rem; color: var(--muted); margin-top: 2px; }
+  .meet-results .mr-empty, .meet-loading { font-size: .82rem; color: var(--muted); text-align: center; padding: 12px; }
+
+  #meetFindBtn { width: 100%; }
+  #meetFindBtn:disabled { opacity: .45; cursor: default; box-shadow: none; }
+
+  #meetOutcome { margin-top: 16px; padding-top: 16px; border-top: 2px dashed rgba(0,0,0,.12); }
+  .meet-rec { text-align: center; }
+  .meet-rec .mr-pick { font-size: .8rem; font-weight: 900; color: var(--red); letter-spacing: .3px; }
+  .meet-rec .mr-station { margin-top: 6px; font-size: 1.35rem; font-weight: 900; color: var(--ink); }
+  .meet-rec .mr-meta { margin-top: 6px; font-size: .82rem; color: var(--muted); line-height: 1.5; }
+  #meetOutcome .placelink {
+    display: inline-block; margin-top: 12px; font-size: .86rem; font-weight: 900; text-decoration: none;
+    color: #fff; background: linear-gradient(180deg, #6fb0ff, #3d86ff); padding: 9px 16px; border-radius: 12px;
+  }
+  .meet-dists { list-style: none; margin: 16px 0 0; padding: 12px 0 0; border-top: 1px dashed rgba(0,0,0,.1); text-align: left; }
+  .meet-dists .md-head { font-size: .74rem; font-weight: 800; color: var(--muted); margin-bottom: 6px; }
+  .meet-dists li { display: flex; justify-content: space-between; align-items: baseline; font-size: .86rem; padding: 4px 2px; }
+  .meet-dists li .md-name { color: var(--ink); font-weight: 700; }
+  .meet-dists li .md-dist { color: var(--red-deep); font-weight: 800; white-space: nowrap; }
+  .meet-alt { margin-top: 14px; }
+  .meet-alt .ma-title { font-size: .74rem; font-weight: 800; color: var(--muted); margin-bottom: 6px; }
+  .meet-alt a { display: inline-block; font-size: .82rem; font-weight: 700; color: #3d86ff; text-decoration: none; margin: 0 12px 4px 0; }
+  .meet-actions { display: flex; gap: 10px; margin-top: 18px; }
+  .meet-actions .btn { flex: 1; }
 </style>
 </head>
 <body>
@@ -440,6 +517,7 @@
       <button class="rchip" data-r="5000">5km</button>
     </div>
     <button class="btn" id="searchBtn">주변 식당 검색</button>
+    <button class="btn ghost" id="meetBtn">🤝 친구랑 중간지점 찾기</button>
     <button class="btn ghost" id="quizBtn">기다리면서 퀴즈 풀기</button>
     <div id="loader" class="hidden">
       <div class="spinner"></div>
@@ -470,6 +548,33 @@
   <div id="quizWrap" class="hidden">
     <button id="quizClose" title="닫기">✕</button>
     <iframe id="quizFrame" title="레트로 퀴즈" loading="lazy"></iframe>
+  </div>
+
+  <!-- 친구와 만날 중간지점 약속 장소 -->
+  <div id="meetWrap" class="hidden">
+    <div class="backdrop"></div>
+    <div id="meetBox">
+      <button id="meetClose" class="meet-x" title="닫기">✕</button>
+      <div class="meet-title">🤝 친구와 만날 중간지점</div>
+      <p class="meet-desc">
+        각자의 위치를 추가하면 모두의 가운데에서 <b>찾기 쉬운 약속 장소</b>(가까운 지하철역)를 추천하고,
+        그 근처 식당을 가챠로 뽑아드려요.
+      </p>
+
+      <div id="meetList"></div>
+
+      <div class="meet-add"><button class="btn ghost" id="meetGps">📍 내 위치 추가</button></div>
+      <div class="meet-search">
+        <input id="meetInput" type="text" placeholder="친구 위치 검색 (예: 강남역, 홍대입구역)" autocomplete="off" />
+        <button class="btn" id="meetSearchBtn">검색</button>
+      </div>
+      <div id="meetMsg" class="meet-msg hidden"></div>
+      <div id="meetResults" class="meet-results hidden"></div>
+
+      <button class="btn" id="meetFindBtn" disabled>중간지점 약속 장소 찾기</button>
+
+      <div id="meetOutcome" class="hidden"></div>
+    </div>
   </div>
 
   <!-- 결과 모달 -->
@@ -620,6 +725,7 @@ function setHint(t) { hint.textContent = t; }
 function go(next) {
   state = next;
   searchBtn.classList.add("hidden");
+  meetBtn.classList.add("hidden");
   quizBtn.classList.add("hidden");
   radiusBar.classList.add("hidden");
   loader.classList.add("hidden");
@@ -629,6 +735,7 @@ function go(next) {
   if (next === STATE.IDLE) {
     clearMachine();
     searchBtn.classList.remove("hidden");
+    meetBtn.classList.remove("hidden");
     quizBtn.classList.remove("hidden");
     radiusBar.classList.remove("hidden");
     setHint("");
@@ -1198,6 +1305,245 @@ if ("serviceWorker" in navigator) {
     navigator.serviceWorker.register("sw.js").catch(err => console.warn("SW 등록 실패:", err));
   });
 }
+
+/* ============================================================
+   친구와 만날 중간지점 약속 장소 찾기
+   - 참가자 위치(내 위치 GPS + 키워드 검색)로 가운데 좌표(평균) 계산
+   - 중간 지점에서 가장 가까운 지하철역(찾기 쉬운 랜드마크)을 추천
+   - 그 근처 식당을 그대로 가챠 머신에 채워 뽑기로 연결
+   ============================================================ */
+const meetWrap    = $("#meetWrap");
+const meetBtn     = $("#meetBtn");
+const meetList    = $("#meetList");
+const meetInput   = $("#meetInput");
+const meetResults = $("#meetResults");
+const meetFindBtn = $("#meetFindBtn");
+const meetOutcome = $("#meetOutcome");
+const meetGpsBtn  = $("#meetGps");
+const meetPoints  = [];   // { name, addr, lat, lng, isMe }
+
+function escapeHtml(s) {
+  return (s || "").replace(/[&<>"]/g, c => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;" }[c]));
+}
+function fmtDist(m) { return m >= 1000 ? (m / 1000).toFixed(1) + "km" : Math.round(m) + "m"; }
+
+let meetMsgT = null;
+function flashMeetMsg(t) {
+  const el = $("#meetMsg");
+  el.textContent = t; el.classList.remove("hidden");
+  clearTimeout(meetMsgT); meetMsgT = setTimeout(() => el.classList.add("hidden"), 2800);
+}
+
+function openMeet() { meetWrap.classList.remove("hidden"); renderMeetList(); }
+function closeMeet() { meetWrap.classList.add("hidden"); }
+
+function renderMeetList() {
+  if (!meetPoints.length) {
+    meetList.innerHTML = '<div class="meet-empty">위치를 2곳 이상 추가해 주세요</div>';
+  } else {
+    meetList.innerHTML = "";
+    meetPoints.forEach((p, i) => {
+      const item = document.createElement("div");
+      item.className = "meet-item";
+      item.innerHTML =
+        `<span class="mi-ic">${p.isMe ? "📍" : "🧑"}</span>` +
+        `<div class="mi-body">` +
+          `<div class="mi-name">${escapeHtml(p.isMe ? "내 위치" : p.name)}</div>` +
+          (p.addr ? `<div class="mi-sub">${escapeHtml(p.addr)}</div>` : "") +
+        `</div>` +
+        `<button class="mi-del" data-i="${i}" title="삭제">✕</button>`;
+      meetList.appendChild(item);
+    });
+  }
+  meetFindBtn.disabled = meetPoints.length < 2;
+}
+
+function addMeetPoint(p) {
+  meetPoints.push(p);
+  renderMeetList();
+  meetOutcome.classList.add("hidden");
+}
+meetList.addEventListener("click", e => {
+  const del = e.target.closest(".mi-del");
+  if (!del) return;
+  meetPoints.splice(parseInt(del.dataset.i, 10), 1);
+  renderMeetList();
+  meetOutcome.classList.add("hidden");
+});
+
+// 내 위치(GPS) 추가
+async function meetAddGps() {
+  if (meetPoints.some(p => p.isMe)) { flashMeetMsg("이미 내 위치가 추가되어 있어요"); return; }
+  meetGpsBtn.disabled = true;
+  const old = meetGpsBtn.textContent; meetGpsBtn.textContent = "위치 확인 중…";
+  try {
+    const coords = await getPosition();
+    addMeetPoint({ name: "내 위치", addr: "", lat: coords.latitude, lng: coords.longitude, isMe: true });
+  } catch (err) {
+    flashMeetMsg("위치 권한이 거부됐어요 — 검색으로 추가해 주세요");
+  } finally {
+    meetGpsBtn.disabled = false; meetGpsBtn.textContent = old;
+  }
+}
+
+// 친구 위치 검색 (카카오 키워드 검색)
+async function meetSearch() {
+  const q = meetInput.value.trim();
+  if (!q) { meetInput.focus(); return; }
+  meetResults.classList.remove("hidden");
+  meetResults.innerHTML = '<div class="meet-loading">검색 중…</div>';
+  try {
+    await loadKakaoSdk(getKey());
+    const ps = new kakao.maps.services.Places();
+    ps.keywordSearch(q, (data, status) => {
+      if (status !== kakao.maps.services.Status.OK || !data.length) {
+        meetResults.innerHTML = '<div class="mr-empty">검색 결과가 없어요 — 다른 이름·주소로 시도해 보세요</div>';
+        return;
+      }
+      meetResults.innerHTML = "";
+      data.slice(0, 6).forEach(d => {
+        const b = document.createElement("button");
+        b.className = "mr";
+        b.innerHTML =
+          `<div class="mr-name">${escapeHtml(d.place_name)}</div>` +
+          `<div class="mr-addr">${escapeHtml(d.road_address_name || d.address_name || "")}</div>`;
+        b.addEventListener("click", () => {
+          addMeetPoint({
+            name: d.place_name,
+            addr: d.road_address_name || d.address_name || "",
+            lat: +d.y, lng: +d.x, isMe: false,
+          });
+          meetResults.classList.add("hidden");
+          meetResults.innerHTML = "";
+          meetInput.value = "";
+        });
+        meetResults.appendChild(b);
+      });
+    });
+  } catch (err) {
+    meetResults.innerHTML = '<div class="mr-empty">검색을 사용할 수 없어요 — 키/도메인을 확인하세요</div>';
+  }
+}
+
+// 한 지점 기준 카테고리 검색(1회)
+function categorySearchOnce(code, loc, radius) {
+  return new Promise(resolve => {
+    const ps = new kakao.maps.services.Places();
+    ps.categorySearch(code, (data, status) => {
+      resolve(status === kakao.maps.services.Status.OK ? data : []);
+    }, { location: loc, radius, sort: kakao.maps.services.SortBy.DISTANCE });
+  });
+}
+
+// 중간 좌표 주변 지하철역 — 반경을 넓혀가며 탐색, 역 이름 중복 제거 후 가까운 3곳
+async function findSubwayNear(lat, lng) {
+  for (const radius of [1000, 2000, 4000, 8000, 15000]) {
+    const data = await categorySearchOnce("SW8", new kakao.maps.LatLng(lat, lng), radius);
+    if (data.length) {
+      const seen = new Set();
+      return data
+        .filter(d => { const n = d.place_name; if (seen.has(n)) return false; seen.add(n); return true; })
+        .map(d => ({ name: d.place_name, lat: +d.y, lng: +d.x, url: d.place_url,
+                     dist: Math.round(haversine(lat, lng, +d.y, +d.x)) }))
+        .sort((a, b) => a.dist - b.dist)
+        .slice(0, 3);
+    }
+  }
+  return [];
+}
+
+// 중간지점 찾기 실행
+async function meetFind() {
+  if (meetPoints.length < 2) return;
+  const mLat = meetPoints.reduce((s, p) => s + p.lat, 0) / meetPoints.length;
+  const mLng = meetPoints.reduce((s, p) => s + p.lng, 0) / meetPoints.length;
+
+  meetOutcome.classList.remove("hidden");
+  meetOutcome.innerHTML = '<div class="meet-loading">중간지점에서 찾기 쉬운 약속 장소를 찾는 중…</div>';
+
+  let stations = [];
+  try {
+    await loadKakaoSdk(getKey());
+    stations = await findSubwayNear(mLat, mLng);
+  } catch (err) { /* SDK/도메인 문제 → 중간 좌표로 대체 */ }
+
+  renderMeetOutcome(mLat, mLng, stations);
+}
+
+function renderMeetOutcome(mLat, mLng, stations) {
+  let html = "";
+  if (stations.length) {
+    const best = stations[0];
+    html +=
+      `<div class="meet-rec">` +
+        `<div class="mr-pick">🎯 추천 약속 장소</div>` +
+        `<div class="mr-station">🚇 ${escapeHtml(best.name)}</div>` +
+        `<div class="mr-meta">중간 지점에서 약 ${fmtDist(best.dist)} · 지하철역이라 찾기 쉬워요</div>` +
+        (best.url ? `<a class="placelink" href="${best.url}" target="_blank" rel="noopener">🗺️ 카카오맵에서 보기 ↗</a>` : "") +
+      `</div>`;
+
+    html += `<ul class="meet-dists"><div class="md-head">약속 장소까지 각자 거리</div>`;
+    meetPoints.forEach(p => {
+      const d = Math.round(haversine(p.lat, p.lng, best.lat, best.lng));
+      html += `<li><span class="md-name">${escapeHtml(p.isMe ? "내 위치" : p.name)}</span><span class="md-dist">${fmtDist(d)}</span></li>`;
+    });
+    html += `</ul>`;
+
+    if (stations.length > 1) {
+      html += `<div class="meet-alt"><div class="ma-title">다른 후보 역</div>`;
+      stations.slice(1).forEach(s => {
+        html += s.url
+          ? `<a href="${s.url}" target="_blank" rel="noopener">${escapeHtml(s.name)} (${fmtDist(s.dist)}) ↗</a>`
+          : `<span>${escapeHtml(s.name)} (${fmtDist(s.dist)})</span>`;
+      });
+      html += `</div>`;
+    }
+  } else {
+    const mapUrl = `https://map.kakao.com/link/map/약속 중간지점,${mLat},${mLng}`;
+    html +=
+      `<div class="meet-rec">` +
+        `<div class="mr-pick">🎯 중간 지점</div>` +
+        `<div class="mr-meta">주변에서 지하철역을 찾지 못했어요.<br>아래 버튼으로 중간 지점 근처 식당을 바로 뽑아보세요.</div>` +
+        `<a class="placelink" href="${mapUrl}" target="_blank" rel="noopener">🗺️ 중간지점 지도 보기 ↗</a>` +
+      `</div>`;
+  }
+
+  html += `<div class="meet-actions"><button class="btn" id="meetGacha">이 근처 식당 가챠로 뽑기</button></div>`;
+  meetOutcome.innerHTML = html;
+
+  const tLat = stations.length ? stations[0].lat : mLat;
+  const tLng = stations.length ? stations[0].lng : mLng;
+  const tName = stations.length ? stations[0].name : "중간 지점";
+  $("#meetGacha").addEventListener("click", () => gachaAround(tLat, tLng, tName));
+}
+
+// 추천 지점 주변 식당을 가챠 머신에 채우고 대기 (기존 검색 흐름 재사용)
+async function gachaAround(lat, lng, placeName) {
+  closeMeet();
+  go(STATE.SEARCHING);
+  try {
+    const list = await fetchKakao({ latitude: lat, longitude: lng }, getKey(), radiusM);
+    if (!list.length) throw new Error("empty");
+    POOL = list; usingReal = true;
+    fillDome(); go(STATE.READY);
+    setHint(`${placeName} 근처 식당으로 캡슐을 채웠어요!`);
+    setTimeout(() => { if (state === STATE.READY) setHint("손잡이를 돌려 캡슐을 뽑으세요!"); }, 2600);
+  } catch (err) {
+    POOL = DUMMY_POOL; usingReal = false;
+    fillDome(); go(STATE.READY);
+    setHint(fallbackMsg(err));
+    setTimeout(() => { if (state === STATE.READY) setHint("손잡이를 돌려 캡슐을 뽑으세요!"); }, 2800);
+  }
+}
+
+// ---- 중간지점 이벤트 바인딩 ----
+meetBtn.addEventListener("click", openMeet);
+$("#meetClose").addEventListener("click", closeMeet);
+meetWrap.querySelector(".backdrop").addEventListener("click", closeMeet);
+meetGpsBtn.addEventListener("click", meetAddGps);
+$("#meetSearchBtn").addEventListener("click", meetSearch);
+meetInput.addEventListener("keydown", e => { if (e.key === "Enter") meetSearch(); });
+meetFindBtn.addEventListener("click", meetFind);
 
 // 시작
 buildCats();
