@@ -5,9 +5,10 @@ import { chromium, devices } from 'playwright-core';
 const BASE = 'http://localhost:8778';
 const OUT = 'store-assets';
 
-const pixel = devices['Pixel 7'] ?? {
-  viewport: { width: 412, height: 915 },
-  deviceScaleFactor: 3, isMobile: true, hasTouch: true,
+// 세로:가로 비율 ≤ 2:1 유지 (플레이 스토어 요건). 850/430 = 1.98:1
+const pixel = {
+  viewport: { width: 430, height: 850 },
+  deviceScaleFactor: 2.5, isMobile: true, hasTouch: true,
 };
 
 const browser = await chromium.launch({ channel: 'chrome', headless: true });
