@@ -9,12 +9,11 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
 
-        <!-- AdMob 앱 ID (광고 단위 ID와 다름!). 아래는 구글 공식 "테스트" 앱 ID 입니다.
-             출시 전 AdMob 콘솔에서 발급한 실제 앱 ID(ca-app-pub-XXXX~YYYY)로 교체하세요.
+        <!-- AdMob 앱 ID (광고 단위 ID와 다름!). 가챠밥 실제 앱 ID (AdMob 콘솔 발급, 2026-07-04).
              이 값이 없거나 형식이 틀리면 앱이 시작하자마자 크래시 납니다. -->
         <meta-data
             android:name="com.google.android.gms.ads.APPLICATION_ID"
-            android:value="ca-app-pub-3940256099942544~3347511713" />
+            android:value="ca-app-pub-7414963860520218~6322707634" />
 
         <activity
             android:configChanges="orientation|keyboardHidden|keyboard|screenSize|locale|smallestScreenSize|screenLayout|uiMode|navigation"
