@@ -3,3 +3,10 @@
 # Node / Capacitor
 node_modules/
 www/
+
+# 서명키 — 절대 커밋 금지 (앱의 평생 열쇠 + 비밀번호)
+*.jks
+*.keystore
+upload-keystore.jks
+key.properties
+android/key.properties
