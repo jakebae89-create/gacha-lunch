@@ -1312,9 +1312,11 @@ if ("serviceWorker" in navigator) {
 // BANNER_AD_ID : 가챠밥 실제 배너 광고 단위 ID (AdMob 콘솔에서 발급, 2026-07-04)
 // USE_TEST_ADS : 개발/테스트 중에는 true 유지(실제 ID여도 테스트 광고만 표시 → 본인 클릭 안전).
 //                ★출시용 release 빌드 직전에 딱 이 값만 false 로 바꿀 것★
-const ADMOB_TEST_BANNER_ID = "ca-app-pub-3940256099942544/6300978111"; // 구글 공식 테스트 배너 ID(참고용)
+const ADMOB_TEST_BANNER_ID = "ca-app-pub-3940256099942544/6300978111"; // 구글 공식 테스트 배너 ID
 const BANNER_AD_ID = "ca-app-pub-7414963860520218/4357642438"; // 가챠밥 실제 배너 단위 ID
-const USE_TEST_ADS = false;                // 실광고 모드 (2026-07-04 출시용)
+const USE_TEST_ADS = true;                 // 비공개 테스트 중 → true / 정식 출시 직전에만 false
+// USE_TEST_ADS=true 면 모든 기기가 구글 테스트 광고 ID를 사용 → 본인/테스터 클릭 안전
+const ACTIVE_AD_ID = USE_TEST_ADS ? ADMOB_TEST_BANNER_ID : BANNER_AD_ID;
 
 (async function initAdMobBanner() {
   const Cap = window.Capacitor;
@@ -1333,7 +1335,7 @@ const USE_TEST_ADS = false;                // 실광고 모드 (2026-07-04 출�
     });
 
     await AdMob.showBanner({
-      adId: BANNER_AD_ID,
+      adId: ACTIVE_AD_ID,
       adSize: "ADAPTIVE_BANNER",
       position: "BOTTOM_CENTER",
       margin: 0,
