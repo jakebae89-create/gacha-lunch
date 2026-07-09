@@ -745,6 +745,7 @@ function go(next) {
     loader.classList.remove("hidden");
     setHint("");
   } else if (next === STATE.READY) {
+    meetBtn.classList.remove("hidden");   // 게임 화면에서도 중간지점 찾기 접근 가능하게 노출
     quizBtn.classList.remove("hidden");   // 게임 화면에서도 하단에 퀴즈 버튼 노출
     machine.classList.add("ready");
     setHint("손잡이를 돌려 캡슐을 뽑으세요!");
