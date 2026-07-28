@@ -61,6 +61,32 @@
   }
   #keyBtn:active { transform: scale(.92); }
 
+  /* 언어 토글 (KO / EN) */
+  #langBtn {
+    position: fixed; top: calc(12px + env(safe-area-inset-top)); left: 14px; z-index: 55;
+    height: 40px; padding: 0 12px; border-radius: 12px; cursor: pointer;
+    font-family: inherit; font-size: .82rem; font-weight: 900; line-height: 1;
+    pointer-events: auto; background: #fff; color: var(--red-deep);
+    border: 2px solid rgba(232,80,63,.25); box-shadow: 0 3px 8px rgba(0,0,0,.1);
+    transition: transform .06s;
+  }
+  #langBtn:active { transform: scale(.92); }
+
+  /* 한국 밖에서 열었을 때 안내 배너 */
+  #geoNotice {
+    position: fixed; left: 12px; right: 12px; bottom: calc(14px + env(safe-area-inset-bottom));
+    z-index: 90; background: #fff; border-radius: 16px; padding: 16px 18px;
+    box-shadow: 0 10px 30px rgba(0,0,0,.18); border: 2px solid rgba(232,80,63,.2);
+    text-align: center; max-width: 460px; margin: 0 auto;
+  }
+  #geoNotice .gn-title { font-size: .98rem; font-weight: 900; color: var(--red-deep); }
+  #geoNotice .gn-desc { margin-top: 7px; font-size: .84rem; color: var(--muted); line-height: 1.55; }
+  #geoNotice .gn-close {
+    margin-top: 12px; font-family: inherit; font-size: .84rem; font-weight: 900; cursor: pointer;
+    padding: 9px 20px; border-radius: 11px; border: none; color: #fff;
+    background: linear-gradient(180deg, #ff8a7e, var(--red));
+  }
+
   /* 카테고리 칩 바 */
   #cats {
     position: fixed; top: calc(58px + env(safe-area-inset-top)); left: 0; right: 0;
@@ -489,10 +515,11 @@
 </head>
 <body>
   <div id="title">
-    <h1>🍚 가챠밥</h1>
+    <h1>🍚 <span data-i18n="appName">가챠밥</span></h1>
   </div>
 
-  <button id="keyBtn" title="카카오 API 키 설정">🔑</button>
+  <button id="langBtn" data-i18n-title="langToggle" title="English로 보기">EN</button>
+  <button id="keyBtn" data-i18n-title="keyBtnTitle" title="카카오 API 키 설정">🔑</button>
 
   <div id="cats"></div>
 
@@ -502,10 +529,10 @@
       <div class="gacha-head" id="dome"></div>
       <div class="gacha-neck"></div>
       <div class="gacha-body">
-        <div class="brand">GACHA 밥</div>
+        <div class="brand" data-i18n="brand">GACHA 밥</div>
         <div class="coinslot">🪙 INSERT</div>
         <div class="knob" id="knob"><span class="hub"></span></div>
-        <div class="knob-label">PUSH ▸ 돌리기</div>
+        <div class="knob-label" data-i18n="knobLabel">PUSH ▸ 돌리기</div>
       </div>
       <div class="gacha-tray" id="tray"><span class="tray-lip"></span></div>
     </div>
@@ -523,30 +550,37 @@
       <button class="rchip" data-r="3000">3km</button>
       <button class="rchip" data-r="5000">5km</button>
     </div>
-    <button class="btn" id="searchBtn">주변 식당 검색</button>
-    <button class="btn ghost" id="meetBtn">약속 장소 정하기</button>
-    <button class="btn ghost" id="quizBtn">기다리면서 퀴즈 풀기</button>
+    <button class="btn" id="searchBtn" data-i18n="searchBtn">주변 식당 검색</button>
+    <button class="btn ghost" id="meetBtn" data-i18n="meetBtn">약속 장소 정하기</button>
+    <button class="btn ghost" id="quizBtn" data-i18n="quizBtn">기다리면서 퀴즈 풀기</button>
     <div id="loader" class="hidden">
       <div class="spinner"></div>
-      <div style="font-size:.9rem;color:var(--muted)">주변 식당을 캡슐에 담는 중…</div>
+      <div style="font-size:.9rem;color:var(--muted)" data-i18n="loading">주변 식당을 캡슐에 담는 중…</div>
     </div>
+  </div>
+
+  <!-- 한국 밖에서 열었을 때 안내 -->
+  <div id="geoNotice" class="hidden">
+    <div class="gn-title" data-i18n="geoTitle">🇰🇷 한국에서만 사용할 수 있어요</div>
+    <div class="gn-desc" data-i18n="geoDesc">이 앱은 한국의 식당 정보를 사용합니다. 한국에 도착한 뒤 열어주세요!</div>
+    <button class="gn-close" id="geoNoticeClose" data-i18n="geoClose">확인</button>
   </div>
 
   <!-- 카카오 API 키 입력 모달 -->
   <div id="keyWrap" class="hidden">
     <div class="backdrop"></div>
     <div id="keyBox">
-      <div class="kb-title">🔑 카카오 JavaScript 키</div>
-      <p class="kb-desc">
+      <div class="kb-title" data-i18n="keyTitle">🔑 카카오 JavaScript 키</div>
+      <p class="kb-desc" data-i18n-html="keyDesc">
         실제 내 주변 식당을 불러오려면 카카오맵 <b>JavaScript 키</b>가 필요합니다.
         키는 이 브라우저(localStorage)에만 저장되며 외부로 전송되지 않습니다.<br>
         ※ 카카오 개발자센터에서 <b>플랫폼 → Web</b>에 이 사이트 도메인을 등록해야 동작합니다.
       </p>
-      <input id="keyInput" type="text" placeholder="여기에 JavaScript 키 붙여넣기" autocomplete="off" spellcheck="false" />
-      <div class="kb-row"><button class="btn" id="keySave">저장하고 검색</button></div>
+      <input id="keyInput" type="text" data-i18n-ph="keyPh" placeholder="여기에 JavaScript 키 붙여넣기" autocomplete="off" spellcheck="false" />
+      <div class="kb-row"><button class="btn" id="keySave" data-i18n="keySave">저장하고 검색</button></div>
       <div class="kb-links">
-        <a href="https://developers.kakao.com" target="_blank" rel="noopener">키 발급받기 ↗</a>
-        <button id="keySkip" class="kb-skip">키 없이 둘러보기(더미)</button>
+        <a href="https://developers.kakao.com" target="_blank" rel="noopener" data-i18n="keyIssue">키 발급받기 ↗</a>
+        <button id="keySkip" class="kb-skip" data-i18n="keySkip">키 없이 둘러보기(더미)</button>
       </div>
     </div>
   </div>
@@ -562,23 +596,23 @@
     <div class="backdrop"></div>
     <div id="meetBox">
       <button id="meetClose" class="meet-x" title="닫기">✕</button>
-      <div class="meet-title">🤝 어디서 만날까요?</div>
-      <p class="meet-desc">
+      <div class="meet-title" data-i18n="meetTitle">🤝 어디서 만날까요?</div>
+      <p class="meet-desc" data-i18n-html="meetDesc">
         각자의 위치를 추가하면 모두의 가운데에서 <b>찾기 쉬운 약속 장소</b>(가까운 지하철역)를 추천하고,
         그 근처 식당을 가챠로 뽑아드려요.
       </p>
 
       <div id="meetList"></div>
 
-      <div class="meet-add"><button class="btn ghost" id="meetGps">📍 내 위치 추가</button></div>
+      <div class="meet-add"><button class="btn ghost" id="meetGps" data-i18n="meetGps">📍 내 위치 추가</button></div>
       <div class="meet-search">
-        <input id="meetInput" type="text" placeholder="친구 위치 검색 (예: 강남역, 홍대입구역)" autocomplete="off" />
-        <button class="btn" id="meetSearchBtn">검색</button>
+        <input id="meetInput" type="text" data-i18n-ph="meetPh" placeholder="친구 위치 검색 (예: 강남역, 홍대입구역)" autocomplete="off" />
+        <button class="btn" id="meetSearchBtn" data-i18n="meetSearchBtn">검색</button>
       </div>
       <div id="meetMsg" class="meet-msg hidden"></div>
       <div id="meetResults" class="meet-results hidden"></div>
 
-      <button class="btn" id="meetFindBtn" disabled>약속 장소 추천받기</button>
+      <button class="btn" id="meetFindBtn" data-i18n="meetFindBtn" disabled>약속 장소 추천받기</button>
 
       <div id="meetOutcome" class="hidden"></div>
     </div>
@@ -591,11 +625,11 @@
       <div class="pick"></div>
       <div class="big"><span class="ic"></span> <span class="rname"></span></div>
       <div class="meta"></div>
-      <div class="menu-title">📋 대표 메뉴</div>
+      <div class="menu-title" data-i18n="menuTitle">📋 대표 메뉴</div>
       <ul class="menu"></ul>
       <div class="place-extra hidden">
-        <a class="placelink routelink hidden" target="_blank" rel="noopener">길찾기 ↗</a>
-        <a class="placelink maplink" target="_blank" rel="noopener">카카오맵에서 보기 ↗</a>
+        <a class="placelink routelink hidden" target="_blank" rel="noopener" data-i18n="routeLink">길찾기 ↗</a>
+        <a class="placelink maplink" target="_blank" rel="noopener" data-i18n="mapLink">카카오맵에서 보기 ↗</a>
       </div>
       <div id="radiusBarResult" class="radius-bar">
           <button class="rchip" data-r="500">500m</button>
@@ -605,8 +639,8 @@
         <button class="rchip" data-r="5000">5km</button>
       </div>
       <div class="row">
-        <button class="btn" id="againBtn">한 번 더 뽑기</button>
-        <button class="btn ghost" id="researchBtn">식당 재검색</button>
+        <button class="btn" id="againBtn" data-i18n="againBtn">한 번 더 뽑기</button>
+        <button class="btn ghost" id="researchBtn" data-i18n="researchBtn">식당 재검색</button>
       </div>
     </div>
   </div>
@@ -644,6 +678,198 @@ const DUMMY_POOL = [
   { name: "베이글 브런치", cat: "카페",   ic: "🥯", menu: [["플레인 베이글",3500],["베이글 샌드위치",7500],["콜드브루",5000]] },
   { name: "편의점 도시락", cat: "편의점", ic: "🏪", menu: [["제육 도시락",4500],["불고기 도시락",4900],["삼각김밥",1300],["컵라면",1500]] },
 ];
+
+/* ============================================================
+   i18n — 한국어(ko) / 영어(en)
+   ------------------------------------------------------------
+   식당 이름·지하철역 이름은 카카오가 주는 한글 그대로 둔다.
+   실제로 가게를 찾아갈 때 봐야 하는 게 그 한글 간판이라 번역이 오히려 방해된다.
+   카테고리 키(한식/중식…)도 카카오 응답 매칭에 쓰이므로 내부값은 한글 고정,
+   화면에 보이는 라벨만 CAT_LABEL로 번역한다.
+   ============================================================ */
+const LANG_LS = "gachaLang";
+
+const I18N = {
+  ko: {
+    appName: "가챠밥",
+    langToggle: "English로 보기",
+    keyBtnTitle: "카카오 API 키 설정",
+    brand: "GACHA 밥",
+    knobLabel: "PUSH ▸ 돌리기",
+    searchBtn: "주변 식당 검색",
+    meetBtn: "약속 장소 정하기",
+    quizBtn: "기다리면서 퀴즈 풀기",
+    loading: "주변 식당을 캡슐에 담는 중…",
+    closeTitle: "닫기",
+    delTitle: "삭제",
+
+    geoTitle: "🇰🇷 한국에서만 사용할 수 있어요",
+    geoDesc: "이 앱은 한국의 식당 정보를 사용합니다. 한국에 도착한 뒤 열어주세요!",
+    geoClose: "확인",
+
+    keyTitle: "🔑 카카오 JavaScript 키",
+    keyDesc: "실제 내 주변 식당을 불러오려면 카카오맵 <b>JavaScript 키</b>가 필요합니다. " +
+             "키는 이 브라우저(localStorage)에만 저장되며 외부로 전송되지 않습니다.<br>" +
+             "※ 카카오 개발자센터에서 <b>플랫폼 → Web</b>에 이 사이트 도메인을 등록해야 동작합니다.",
+    keyPh: "여기에 JavaScript 키 붙여넣기",
+    keySave: "저장하고 검색",
+    keyIssue: "키 발급받기 ↗",
+    keySkip: "키 없이 둘러보기(더미)",
+
+    meetTitle: "🤝 어디서 만날까요?",
+    meetDesc: "각자의 위치를 추가하면 모두의 가운데에서 <b>찾기 쉬운 약속 장소</b>(가까운 지하철역)를 추천하고, " +
+              "그 근처 식당을 가챠로 뽑아드려요.",
+    meetGps: "📍 내 위치 추가",
+    meetPh: "친구 위치 검색 (예: 강남역, 홍대입구역)",
+    meetSearchBtn: "검색",
+    meetFindBtn: "약속 장소 추천받기",
+    meetEmpty: "위치를 2곳 이상 추가해 주세요",
+    meetMe: "내 위치",
+    meetDupMe: "이미 내 위치가 추가되어 있어요",
+    meetLocating: "위치 확인 중…",
+    meetDenied: "위치 권한이 거부됐어요 — 검색으로 추가해 주세요",
+    meetSearching: "검색 중…",
+    meetNoResult: "검색 결과가 없어요 — 다른 이름·주소로 시도해 보세요",
+    meetSearchFail: "검색을 사용할 수 없어요 — 키/도메인을 확인하세요",
+    meetFinding: "모두의 가운데에서 만날 곳을 찾는 중…",
+    meetRecPick: "🎯 추천 약속 장소",
+    meetRecMeta: d => `중간 지점에서 약 ${d} · 지하철역이라 찾기 쉬워요`,
+    meetMidPick: "🎯 중간 지점",
+    meetNoStation: "주변에서 지하철역을 찾지 못했어요.<br>아래 버튼으로 중간 지점 근처 식당을 바로 뽑아보세요.",
+    meetMidLink: "🗺️ 중간지점 지도 보기 ↗",
+    meetDistHead: "약속 장소까지 각자 거리",
+    meetGacha: "이 근처 식당 가챠로 뽑기",
+    meetMidPoint: "중간 지점",
+
+    menuTitle: "📋 대표 메뉴",
+    routeLink: "길찾기 ↗",
+    mapLink: "카카오맵에서 보기 ↗",
+    againBtn: "한 번 더 뽑기",
+    researchBtn: "식당 재검색",
+    free: "무료",
+    won: n => n.toLocaleString("ko-KR") + "원",
+
+    hintCrank: "손잡이를 돌려 캡슐을 뽑으세요!",
+    hintOpen: "🎁 캡슐을 톡! 눌러 열어보세요",
+    hintFilled: p => `${p} 근처 식당으로 캡슐을 채웠어요!`,
+    cycleReset: "🔄 모두 한 번씩 나왔어요 — 다시 시작!",
+    picks: ["🎉 오늘의 픽!", "✨ 캡슐 속 행운!", "🍀 이걸로 정했다!", "🥁 두구두구… 당첨!", "😋 점심 결정 완료!"],
+
+    fbDenied: "📍 위치 권한이 거부돼 더미 데이터로 진행합니다",
+    fbEmpty: "🤔 주변에서 식당을 못 찾아 더미로 진행합니다",
+    fbSdk: "🔑 키/도메인을 확인하세요 — 더미로 진행합니다",
+    fbEtc: "⚠️ 불러오지 못해 더미 데이터로 진행합니다",
+
+    cats: { 전체:"전체", 한식:"한식", 중식:"중식", 일식:"일식", 양식:"양식",
+            분식:"분식", 카페:"카페", 기타:"기타", 치킨:"치킨", 아시안:"아시안",
+            멕시칸:"멕시칸", 샐러드:"샐러드", 편의점:"편의점" },
+  },
+
+  en: {
+    appName: "GachaBab",
+    langToggle: "한국어로 보기",
+    keyBtnTitle: "Kakao API key settings",
+    brand: "GACHA BAB",
+    knobLabel: "PUSH ▸ TURN",
+    searchBtn: "Find restaurants nearby",
+    meetBtn: "Pick a place to meet",
+    quizBtn: "Play a quiz while you wait",
+    loading: "Loading nearby restaurants…",
+    closeTitle: "Close",
+    delTitle: "Remove",
+
+    geoTitle: "🇰🇷 Works in South Korea only",
+    geoDesc: "This app uses Korean restaurant data. Open it once you arrive in Korea and we'll find places near you!",
+    geoClose: "Got it",
+
+    keyTitle: "🔑 Kakao JavaScript key",
+    keyDesc: "A Kakao Maps <b>JavaScript key</b> is required to load real restaurants near you. " +
+             "The key is stored only in this browser (localStorage) and is never sent anywhere else.<br>" +
+             "※ Register this site's domain under <b>Platform → Web</b> in the Kakao Developers console.",
+    keyPh: "Paste your JavaScript key here",
+    keySave: "Save and search",
+    keyIssue: "Get a key ↗",
+    keySkip: "Browse without a key (demo)",
+
+    meetTitle: "🤝 Where should we meet?",
+    meetDesc: "Add everyone's location and we'll suggest an <b>easy-to-find meeting spot</b> " +
+              "(the nearest subway station) in the middle, then draw a restaurant near it.",
+    meetGps: "📍 Add my location",
+    meetPh: "Search a friend's location (e.g. Gangnam Station)",
+    meetSearchBtn: "Search",
+    meetFindBtn: "Suggest a meeting spot",
+    meetEmpty: "Add at least 2 locations",
+    meetMe: "My location",
+    meetDupMe: "Your location is already added",
+    meetLocating: "Getting location…",
+    meetDenied: "Location permission denied — add it by search instead",
+    meetSearching: "Searching…",
+    meetNoResult: "No results — try a different name or address",
+    meetSearchFail: "Search unavailable — check your key/domain",
+    meetFinding: "Finding a spot in the middle for everyone…",
+    meetRecPick: "🎯 Suggested meeting spot",
+    meetRecMeta: d => `About ${d} from the midpoint · a subway station, easy to find`,
+    meetMidPick: "🎯 Midpoint",
+    meetNoStation: "No subway station found nearby.<br>Use the button below to draw a restaurant near the midpoint.",
+    meetMidLink: "🗺️ View midpoint on map ↗",
+    meetDistHead: "Distance for each person",
+    meetGacha: "Draw a restaurant near here",
+    meetMidPoint: "the midpoint",
+
+    menuTitle: "📋 Popular menu",
+    routeLink: "Directions ↗",
+    mapLink: "View on Kakao Map ↗",
+    againBtn: "Draw again",
+    researchBtn: "Search again",
+    free: "Free",
+    won: n => "₩" + n.toLocaleString("en-US"),
+
+    hintCrank: "Turn the knob to draw a capsule!",
+    hintOpen: "🎁 Tap the capsule to open it",
+    hintFilled: p => `Filled with restaurants near ${p}!`,
+    cycleReset: "🔄 You've seen them all — starting over!",
+    picks: ["🎉 Today's pick!", "✨ Lucky capsule!", "🍀 This is the one!", "🥁 Drumroll… winner!", "😋 Lunch decided!"],
+
+    fbDenied: "📍 Location denied — showing demo data",
+    fbEmpty: "🤔 No restaurants found nearby — showing demo data",
+    fbSdk: "🔑 Check your key/domain — showing demo data",
+    fbEtc: "⚠️ Couldn't load — showing demo data",
+
+    cats: { 전체:"All", 한식:"Korean", 중식:"Chinese", 일식:"Japanese", 양식:"Western",
+            분식:"Snacks", 카페:"Cafe", 기타:"Other", 치킨:"Chicken", 아시안:"Asian",
+            멕시칸:"Mexican", 샐러드:"Salad", 편의점:"Convenience" },
+  },
+};
+
+let LANG = (() => {
+  try { const s = localStorage.getItem(LANG_LS); if (s === "ko" || s === "en") return s; } catch (e) {}
+  return /^ko\b/i.test(navigator.language || "") ? "ko" : "en";
+})();
+
+function t(key) { const v = I18N[LANG][key]; return v !== undefined ? v : I18N.ko[key]; }
+function catLabel(c) { return I18N[LANG].cats[c] || c; }
+
+// data-i18n(텍스트) / -html(마크업 포함) / -ph(placeholder) / -title(title 속성) 일괄 적용
+function applyI18n() {
+  document.documentElement.lang = LANG;
+  document.querySelectorAll("[data-i18n]").forEach(el => { el.textContent = t(el.dataset.i18n); });
+  document.querySelectorAll("[data-i18n-html]").forEach(el => { el.innerHTML = t(el.dataset.i18nHtml); });
+  document.querySelectorAll("[data-i18n-ph]").forEach(el => { el.placeholder = t(el.dataset.i18nPh); });
+  document.querySelectorAll("[data-i18n-title]").forEach(el => { el.title = t(el.dataset.i18nTitle); });
+  const lb = document.getElementById("langBtn");
+  if (lb) lb.textContent = (LANG === "ko") ? "EN" : "한";
+  // 퀴즈는 한국어 콘텐츠라 영어 모드에서는 숨긴다
+  const qb = document.getElementById("quizBtn");
+  if (qb) qb.classList.toggle("hidden", LANG !== "ko");
+}
+
+function setLang(next) {
+  LANG = next;
+  try { localStorage.setItem(LANG_LS, LANG); } catch (e) {}
+  applyI18n();
+  buildCats();
+  if (state === STATE.READY) setHint(t("hintCrank"));
+}
 
 const STATE = { IDLE:"idle", SEARCHING:"searching", READY:"ready", CRANKING:"cranking", CAPSULE:"capsule", OPENING:"opening", RESULT:"result" };
 let state = STATE.IDLE;
@@ -744,7 +970,7 @@ function go(next) {
     clearMachine();
     searchBtn.classList.remove("hidden");
     meetBtn.classList.remove("hidden");
-    quizBtn.classList.remove("hidden");
+    showQuizBtn();
     radiusBar.classList.remove("hidden");
     setHint("");
   } else if (next === STATE.SEARCHING) {
@@ -752,15 +978,18 @@ function go(next) {
     setHint("");
   } else if (next === STATE.READY) {
     meetBtn.classList.remove("hidden");   // 게임 화면에서도 중간지점 찾기 접근 가능하게 노출
-    quizBtn.classList.remove("hidden");   // 게임 화면에서도 하단에 퀴즈 버튼 노출
+    showQuizBtn();                        // 게임 화면에서도 하단에 퀴즈 버튼 노출(영어 모드는 숨김)
     machine.classList.add("ready");
-    setHint("손잡이를 돌려 캡슐을 뽑으세요!");
+    setHint(t("hintCrank"));
   } else if (next === STATE.CAPSULE) {
-    setHint("🎁 캡슐을 톡! 눌러 열어보세요");
+    setHint(t("hintOpen"));
   } else if (next === STATE.RESULT) {
     result.classList.remove("hidden");
   }
 }
+
+// 퀴즈 콘텐츠가 한국어라 영어 모드에서는 버튼을 내린다
+function showQuizBtn() { quizBtn.classList.toggle("hidden", LANG !== "ko"); }
 
 function clearMachine() {
   dome.innerHTML = "";
@@ -789,7 +1018,7 @@ function buildCats() {
     const on = (c === "전체") ? selectedCats.size === 0 : selectedCats.has(c);
     const b = document.createElement("button");
     b.className = "chip" + (on ? " active" : "");
-    b.textContent = c;
+    b.textContent = catLabel(c);
     b.addEventListener("click", () => selectCat(c));
     wrap.appendChild(b);
   });
@@ -1116,6 +1345,8 @@ async function search() {
   go(STATE.SEARCHING);
   try {
     const coords = await getPosition();
+    // 해외에서는 카카오가 결과를 못 주므로, 빈 화면 대신 이유를 알려준다
+    if (!inKorea(coords.latitude, coords.longitude)) geoNotice.classList.remove("hidden");
     const list = await fetchKakao(coords, key, radiusM);
     if (!list.length) throw new Error("empty");
     POOL = list; usingReal = true;
@@ -1124,14 +1355,14 @@ async function search() {
     POOL = DUMMY_POOL; usingReal = false;
     fillDome(); go(STATE.READY);
     setHint(fallbackMsg(err));
-    setTimeout(() => { if (state === STATE.READY) setHint("손잡이를 돌려 캡슐을 뽑으세요!"); }, 2800);
+    setTimeout(() => { if (state === STATE.READY) setHint(t("hintCrank")); }, 2800);
   }
 }
 function fallbackMsg(err) {
-  if (err && err.code === 1) return "📍 위치 권한이 거부돼 더미 데이터로 진행합니다";
-  if (err && err.message === "empty") return "🤔 주변에서 식당을 못 찾아 더미로 진행합니다";
-  if (err && err.message === "sdk-load") return "🔑 키/도메인을 확인하세요 — 더미로 진행합니다";
-  return "⚠️ 불러오지 못해 더미 데이터로 진행합니다";
+  if (err && err.code === 1) return t("fbDenied");
+  if (err && err.message === "empty") return t("fbEmpty");
+  if (err && err.message === "sdk-load") return t("fbSdk");
+  return t("fbEtc");
 }
 
 // ---- 돔에 캡슐 채우기 ----
@@ -1227,15 +1458,16 @@ function openCapsule() {
 }
 
 // ---- 결과 표시 ----
-const PICKS = ["🎉 오늘의 픽!", "✨ 캡슐 속 행운!", "🍀 이걸로 정했다!", "🥁 두구두구… 당첨!", "😋 점심 결정 완료!"];
 function showResult(data) {
   const dist = (data.dist != null) ? data.dist : 50 + Math.floor(Math.random() * 750);
+  const picks = t("picks");
   result.querySelector(".pick").textContent = cycleReset
-    ? "🔄 모두 한 번씩 나왔어요 — 다시 시작!"
-    : PICKS[Math.floor(Math.random() * PICKS.length)];
+    ? t("cycleReset")
+    : picks[Math.floor(Math.random() * picks.length)];
   result.querySelector(".ic").innerHTML = iconHTML(data.ic);
   result.querySelector(".rname").textContent = data.name;
-  let meta = `${data.cat} · 약 ${dist}m`;
+  let meta = (LANG === "ko") ? `${catLabel(data.cat)} · 약 ${dist}m`
+                             : `${catLabel(data.cat)} · ~${dist}m`;
   if (data.phone) meta += ` · ☎ ${data.phone}`;
   result.querySelector(".meta").textContent = meta;
 
@@ -1249,7 +1481,7 @@ function showResult(data) {
     const li = document.createElement("li");
     const mn = document.createElement("span"); mn.className = "mn"; mn.textContent = name;
     const mp = document.createElement("span"); mp.className = "mp";
-    mp.textContent = price > 0 ? price.toLocaleString("ko-KR") + "원" : "무료";
+    mp.textContent = price > 0 ? t("won")(price) : t("free");
     li.append(mn, mp);
     ul.appendChild(li);
   });
@@ -1400,7 +1632,7 @@ function closeMeet() { meetWrap.classList.add("hidden"); }
 
 function renderMeetList() {
   if (!meetPoints.length) {
-    meetList.innerHTML = '<div class="meet-empty">위치를 2곳 이상 추가해 주세요</div>';
+    meetList.innerHTML = `<div class="meet-empty">${escapeHtml(t("meetEmpty"))}</div>`;
   } else {
     meetList.innerHTML = "";
     meetPoints.forEach((p, i) => {
@@ -1409,10 +1641,10 @@ function renderMeetList() {
       item.innerHTML =
         `<span class="mi-ic">${p.isMe ? "📍" : "🧑"}</span>` +
         `<div class="mi-body">` +
-          `<div class="mi-name">${escapeHtml(p.isMe ? "내 위치" : p.name)}</div>` +
+          `<div class="mi-name">${escapeHtml(p.isMe ? t("meetMe") : p.name)}</div>` +
           (p.addr ? `<div class="mi-sub">${escapeHtml(p.addr)}</div>` : "") +
         `</div>` +
-        `<button class="mi-del" data-i="${i}" title="삭제">✕</button>`;
+        `<button class="mi-del" data-i="${i}" title="${escapeHtml(t("delTitle"))}">✕</button>`;
       meetList.appendChild(item);
     });
   }
@@ -1434,14 +1666,14 @@ meetList.addEventListener("click", e => {
 
 // 내 위치(GPS) 추가
 async function meetAddGps() {
-  if (meetPoints.some(p => p.isMe)) { flashMeetMsg("이미 내 위치가 추가되어 있어요"); return; }
+  if (meetPoints.some(p => p.isMe)) { flashMeetMsg(t("meetDupMe")); return; }
   meetGpsBtn.disabled = true;
-  const old = meetGpsBtn.textContent; meetGpsBtn.textContent = "위치 확인 중…";
+  const old = meetGpsBtn.textContent; meetGpsBtn.textContent = t("meetLocating");
   try {
     const coords = await getPosition();
-    addMeetPoint({ name: "내 위치", addr: "", lat: coords.latitude, lng: coords.longitude, isMe: true });
+    addMeetPoint({ name: t("meetMe"), addr: "", lat: coords.latitude, lng: coords.longitude, isMe: true });
   } catch (err) {
-    flashMeetMsg("위치 권한이 거부됐어요 — 검색으로 추가해 주세요");
+    flashMeetMsg(t("meetDenied"));
   } finally {
     meetGpsBtn.disabled = false; meetGpsBtn.textContent = old;
   }
@@ -1452,13 +1684,13 @@ async function meetSearch() {
   const q = meetInput.value.trim();
   if (!q) { meetInput.focus(); return; }
   meetResults.classList.remove("hidden");
-  meetResults.innerHTML = '<div class="meet-loading">검색 중…</div>';
+  meetResults.innerHTML = `<div class="meet-loading">${escapeHtml(t("meetSearching"))}</div>`;
   try {
     await loadKakaoSdk(getKey());
     const ps = new kakao.maps.services.Places();
     ps.keywordSearch(q, (data, status) => {
       if (status !== kakao.maps.services.Status.OK || !data.length) {
-        meetResults.innerHTML = '<div class="mr-empty">검색 결과가 없어요 — 다른 이름·주소로 시도해 보세요</div>';
+        meetResults.innerHTML = `<div class="mr-empty">${escapeHtml(t("meetNoResult"))}</div>`;
         return;
       }
       meetResults.innerHTML = "";
@@ -1482,7 +1714,7 @@ async function meetSearch() {
       });
     });
   } catch (err) {
-    meetResults.innerHTML = '<div class="mr-empty">검색을 사용할 수 없어요 — 키/도메인을 확인하세요</div>';
+    meetResults.innerHTML = `<div class="mr-empty">${escapeHtml(t("meetSearchFail"))}</div>`;
   }
 }
 
@@ -1520,7 +1752,7 @@ async function meetFind() {
   const mLng = meetPoints.reduce((s, p) => s + p.lng, 0) / meetPoints.length;
 
   meetOutcome.classList.remove("hidden");
-  meetOutcome.innerHTML = '<div class="meet-loading">모두의 가운데에서 만날 곳을 찾는 중…</div>';
+  meetOutcome.innerHTML = `<div class="meet-loading">${escapeHtml(t("meetFinding"))}</div>`;
 
   let stations = [];
   try {
@@ -1537,16 +1769,16 @@ function renderMeetOutcome(mLat, mLng, stations) {
     const best = stations[0];
     html +=
       `<div class="meet-rec">` +
-        `<div class="mr-pick">🎯 추천 약속 장소</div>` +
+        `<div class="mr-pick">${escapeHtml(t("meetRecPick"))}</div>` +
         `<div class="mr-station">🚇 ${escapeHtml(best.name)}</div>` +
-        `<div class="mr-meta">중간 지점에서 약 ${fmtDist(best.dist)} · 지하철역이라 찾기 쉬워요</div>` +
-        (best.url ? `<a class="placelink" href="${best.url}" target="_blank" rel="noopener">카카오맵에서 보기 ↗</a>` : "") +
+        `<div class="mr-meta">${escapeHtml(t("meetRecMeta")(fmtDist(best.dist)))}</div>` +
+        (best.url ? `<a class="placelink" href="${best.url}" target="_blank" rel="noopener">${escapeHtml(t("mapLink"))}</a>` : "") +
       `</div>`;
 
-    html += `<ul class="meet-dists"><div class="md-head">약속 장소까지 각자 거리</div>`;
+    html += `<ul class="meet-dists"><div class="md-head">${escapeHtml(t("meetDistHead"))}</div>`;
     meetPoints.forEach(p => {
       const d = Math.round(haversine(p.lat, p.lng, best.lat, best.lng));
-      html += `<li><span class="md-name">${escapeHtml(p.isMe ? "내 위치" : p.name)}</span><span class="md-dist">${fmtDist(d)}</span></li>`;
+      html += `<li><span class="md-name">${escapeHtml(p.isMe ? t("meetMe") : p.name)}</span><span class="md-dist">${fmtDist(d)}</span></li>`;
     });
     html += `</ul>`;
 
@@ -1563,18 +1795,18 @@ function renderMeetOutcome(mLat, mLng, stations) {
     const mapUrl = `https://map.kakao.com/link/map/약속 중간지점,${mLat},${mLng}`;
     html +=
       `<div class="meet-rec">` +
-        `<div class="mr-pick">🎯 중간 지점</div>` +
-        `<div class="mr-meta">주변에서 지하철역을 찾지 못했어요.<br>아래 버튼으로 중간 지점 근처 식당을 바로 뽑아보세요.</div>` +
-        `<a class="placelink" href="${mapUrl}" target="_blank" rel="noopener">🗺️ 중간지점 지도 보기 ↗</a>` +
+        `<div class="mr-pick">${escapeHtml(t("meetMidPick"))}</div>` +
+        `<div class="mr-meta">${t("meetNoStation")}</div>` +
+        `<a class="placelink" href="${mapUrl}" target="_blank" rel="noopener">${escapeHtml(t("meetMidLink"))}</a>` +
       `</div>`;
   }
 
-  html += `<div class="meet-actions"><button class="btn" id="meetGacha">이 근처 식당 가챠로 뽑기</button></div>`;
+  html += `<div class="meet-actions"><button class="btn" id="meetGacha">${escapeHtml(t("meetGacha"))}</button></div>`;
   meetOutcome.innerHTML = html;
 
   const tLat = stations.length ? stations[0].lat : mLat;
   const tLng = stations.length ? stations[0].lng : mLng;
-  const tName = stations.length ? stations[0].name : "중간 지점";
+  const tName = stations.length ? stations[0].name : t("meetMidPoint");
   $("#meetGacha").addEventListener("click", () => gachaAround(tLat, tLng, tName));
 }
 
@@ -1588,12 +1820,12 @@ async function gachaAround(lat, lng, placeName) {
     POOL = list; usingReal = true;
     fillDome(); go(STATE.READY);
     setHint(`${placeName} 근처 식당으로 캡슐을 채웠어요!`);
-    setTimeout(() => { if (state === STATE.READY) setHint("손잡이를 돌려 캡슐을 뽑으세요!"); }, 2600);
+    setTimeout(() => { if (state === STATE.READY) setHint(t("hintCrank")); }, 2600);
   } catch (err) {
     POOL = DUMMY_POOL; usingReal = false;
     fillDome(); go(STATE.READY);
     setHint(fallbackMsg(err));
-    setTimeout(() => { if (state === STATE.READY) setHint("손잡이를 돌려 캡슐을 뽑으세요!"); }, 2800);
+    setTimeout(() => { if (state === STATE.READY) setHint(t("hintCrank")); }, 2800);
   }
 }
 
@@ -1606,9 +1838,38 @@ $("#meetSearchBtn").addEventListener("click", meetSearch);
 meetInput.addEventListener("keydown", e => { if (e.key === "Enter") meetSearch(); });
 meetFindBtn.addEventListener("click", meetFind);
 
+// ---- 언어 토글 ----
+$("#langBtn").addEventListener("click", () => setLang(LANG === "ko" ? "en" : "ko"));
+
+/* ---- 한국 밖에서 열었을 때 안내 ----
+   카카오 로컬 API는 한국 데이터만 있어서 해외에서는 검색 결과가 0이 된다.
+   빈 화면 대신 "한국에서 쓰는 앱"이라고 알려줘야 오해가 없다.
+   권한을 새로 요청하지는 않고, 이미 허용된 경우에만 조용히 확인한다. */
+const KR_BOUNDS = { latMin: 33, latMax: 39.6, lngMin: 124, lngMax: 132 };
+function inKorea(lat, lng) {
+  return lat >= KR_BOUNDS.latMin && lat <= KR_BOUNDS.latMax &&
+         lng >= KR_BOUNDS.lngMin && lng <= KR_BOUNDS.lngMax;
+}
+const geoNotice = $("#geoNotice");
+$("#geoNoticeClose").addEventListener("click", () => geoNotice.classList.add("hidden"));
+
+async function checkRegion() {
+  if (!navigator.geolocation || !navigator.permissions) return;
+  try {
+    const st = await navigator.permissions.query({ name: "geolocation" });
+    if (st.state !== "granted") return;            // 아직 허용 전이면 여기서 권한을 조르지 않는다
+    navigator.geolocation.getCurrentPosition(pos => {
+      const { latitude, longitude } = pos.coords;
+      if (!inKorea(latitude, longitude)) geoNotice.classList.remove("hidden");
+    }, () => {}, { timeout: 8000, maximumAge: 600000 });
+  } catch (e) { /* permissions API 미지원 브라우저는 조용히 넘어간다 */ }
+}
+
 // 시작
+applyI18n();
 buildCats();
 go(STATE.IDLE);
+checkRegion();
 </script>
 </body>
 </html>
