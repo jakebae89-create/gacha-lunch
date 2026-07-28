@@ -360,12 +360,17 @@
   #result ul.menu li:last-child { border-bottom: none; }
   #result ul.menu li .mn { color: var(--ink); font-weight: 700; font-size: .95rem; }
   #result ul.menu li .mp { color: var(--red-deep); font-weight: 900; white-space: nowrap; font-size: .95rem; }
-  #result .place-extra { margin-top: 16px; }
+  #result .place-extra { margin-top: 16px; display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
+  #result .place-extra.hidden { display: none; }
   #result .placelink {
     display: inline-block; font-size: .9rem; font-weight: 900; text-decoration: none;
     color: #fff; background: linear-gradient(180deg, #6fb0ff, #3d86ff); padding: 10px 18px; border-radius: 12px;
   }
-  #result .row { display: flex; gap: 10px; margin-top: 18px; }
+  #result .routelink { background: linear-gradient(180deg, #5ed16a, #35b04a); }
+  #result .routelink.hidden { display: none; }
+  #result .row { display: flex; gap: 10px; margin-top: 18px; justify-content: center; flex-wrap: wrap; }
+  /* 글자는 항상 한 줄로. 폭이 모자라면 버튼끼리 세로로 쌓인다(320px급 기기) */
+  #result .row .btn { white-space: nowrap; padding-left: 18px; padding-right: 18px; }
   #result .row .btn { flex: 1; }
 
   /* ===== API 키 모달 ===== */
@@ -519,7 +524,7 @@
       <button class="rchip" data-r="5000">5km</button>
     </div>
     <button class="btn" id="searchBtn">주변 식당 검색</button>
-    <button class="btn ghost" id="meetBtn">🤝 친구랑 중간지점 찾기</button>
+    <button class="btn ghost" id="meetBtn">약속 장소 정하기</button>
     <button class="btn ghost" id="quizBtn">기다리면서 퀴즈 풀기</button>
     <div id="loader" class="hidden">
       <div class="spinner"></div>
@@ -557,7 +562,7 @@
     <div class="backdrop"></div>
     <div id="meetBox">
       <button id="meetClose" class="meet-x" title="닫기">✕</button>
-      <div class="meet-title">🤝 친구와 만날 중간지점</div>
+      <div class="meet-title">🤝 어디서 만날까요?</div>
       <p class="meet-desc">
         각자의 위치를 추가하면 모두의 가운데에서 <b>찾기 쉬운 약속 장소</b>(가까운 지하철역)를 추천하고,
         그 근처 식당을 가챠로 뽑아드려요.
@@ -573,7 +578,7 @@
       <div id="meetMsg" class="meet-msg hidden"></div>
       <div id="meetResults" class="meet-results hidden"></div>
 
-      <button class="btn" id="meetFindBtn" disabled>중간지점 약속 장소 찾기</button>
+      <button class="btn" id="meetFindBtn" disabled>약속 장소 추천받기</button>
 
       <div id="meetOutcome" class="hidden"></div>
     </div>
@@ -589,7 +594,8 @@
       <div class="menu-title">📋 대표 메뉴</div>
       <ul class="menu"></ul>
       <div class="place-extra hidden">
-        <a class="placelink" target="_blank" rel="noopener">🗺️ 카카오맵에서 보기 ↗</a>
+        <a class="placelink routelink hidden" target="_blank" rel="noopener">길찾기 ↗</a>
+        <a class="placelink maplink" target="_blank" rel="noopener">카카오맵에서 보기 ↗</a>
       </div>
       <div id="radiusBarResult" class="radius-bar">
           <button class="rchip" data-r="500">500m</button>
@@ -935,6 +941,8 @@ function mapDoc(d) {
     phone: d.phone || "",
     url: d.place_url || "",
     addr: d.road_address_name || d.address_name || "",
+    lat: +d.y,                                    // 길찾기 링크용 좌표
+    lng: +d.x,
   };
 }
 
@@ -1247,9 +1255,21 @@ function showResult(data) {
   });
 
   const extra = result.querySelector(".place-extra");
-  const link = result.querySelector(".placelink");
-  if (data.url) { link.href = data.url; extra.classList.remove("hidden"); }
-  else { extra.classList.add("hidden"); }
+  const link = result.querySelector(".maplink");
+  const route = result.querySelector(".routelink");
+
+  link.classList.toggle("hidden", !data.url);
+  if (data.url) link.href = data.url;
+
+  // 카카오맵 길찾기(도착지 지정) — 좌표가 있어야 가능. 더미 데이터엔 없음.
+  const hasCoords = Number.isFinite(data.lat) && Number.isFinite(data.lng);
+  route.classList.toggle("hidden", !hasCoords);
+  if (hasCoords) {
+    route.href = "https://map.kakao.com/link/to/" +
+      encodeURIComponent(data.name) + "," + data.lat + "," + data.lng;
+  }
+
+  extra.classList.toggle("hidden", !data.url && !hasCoords);
 
   setTimeout(() => go(STATE.RESULT), 250);
 }
@@ -1500,7 +1520,7 @@ async function meetFind() {
   const mLng = meetPoints.reduce((s, p) => s + p.lng, 0) / meetPoints.length;
 
   meetOutcome.classList.remove("hidden");
-  meetOutcome.innerHTML = '<div class="meet-loading">중간지점에서 찾기 쉬운 약속 장소를 찾는 중…</div>';
+  meetOutcome.innerHTML = '<div class="meet-loading">모두의 가운데에서 만날 곳을 찾는 중…</div>';
 
   let stations = [];
   try {
@@ -1520,7 +1540,7 @@ function renderMeetOutcome(mLat, mLng, stations) {
         `<div class="mr-pick">🎯 추천 약속 장소</div>` +
         `<div class="mr-station">🚇 ${escapeHtml(best.name)}</div>` +
         `<div class="mr-meta">중간 지점에서 약 ${fmtDist(best.dist)} · 지하철역이라 찾기 쉬워요</div>` +
-        (best.url ? `<a class="placelink" href="${best.url}" target="_blank" rel="noopener">🗺️ 카카오맵에서 보기 ↗</a>` : "") +
+        (best.url ? `<a class="placelink" href="${best.url}" target="_blank" rel="noopener">카카오맵에서 보기 ↗</a>` : "") +
       `</div>`;
 
     html += `<ul class="meet-dists"><div class="md-head">약속 장소까지 각자 거리</div>`;
