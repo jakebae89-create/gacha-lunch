@@ -444,14 +444,27 @@
     box-shadow: 0 2px 5px rgba(0,0,0,.07); transition: transform .06s;
   }
   #result .actbtn:active { transform: scale(.95); }
-  #result .actbtn.danger { color: var(--red-deep); border-color: rgba(232,80,63,.28); }
   #result .actbtn.done { background: #eef7ee; color: #2f8f43; border-color: rgba(47,143,67,.3); }
+  /* 저장된 상태 — 눌러서 해제할 수 있다는 걸 색으로 보여준다 */
+  #result .actbtn.saved { background: #fff4e0; color: #b8770a; border-color: rgba(240,169,27,.45); }
 
-  #result .place-extra { margin-top: 16px; display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
+  /* 여긴 싫어 — 자주 쓰는 동작이 아니라 조용한 텍스트 링크로 둔다 */
+  #result .quietbtn {
+    display: block; margin: 10px auto 0; font-family: inherit; cursor: pointer;
+    background: none; border: none; padding: 4px 8px;
+    font-size: .76rem; font-weight: 700; color: var(--muted); text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+  #result .quietbtn:active { transform: scale(.95); }
+  #result .quietbtn.done { color: #2f8f43; text-decoration: none; }
+
+  /* 길찾기 + 카카오맵을 항상 한 줄에. 둘이 폭을 반씩 나눠 갖는다 */
+  #result .place-extra { margin-top: 16px; display: flex; flex-wrap: nowrap; gap: 8px; justify-content: center; }
   #result .place-extra.hidden { display: none; }
   #result .placelink {
-    display: inline-block; font-size: .9rem; font-weight: 900; text-decoration: none;
-    color: #fff; background: linear-gradient(180deg, #6fb0ff, #3d86ff); padding: 10px 18px; border-radius: 12px;
+    flex: 1; min-width: 0; text-align: center; white-space: nowrap;
+    font-size: .85rem; font-weight: 900; text-decoration: none;
+    color: #fff; background: linear-gradient(180deg, #6fb0ff, #3d86ff); padding: 10px 8px; border-radius: 12px;
   }
   #result .routelink { background: linear-gradient(180deg, #5ed16a, #35b04a); }
   #result .routelink.hidden { display: none; }
@@ -515,6 +528,8 @@
   .dex-stat.ssr .ds-n { color: #d78f06; }
   .dex-stat.sr  { border-color: rgba(155,107,240,.4); }
   .dex-stat.sr .ds-n { color: #7d4fd6; }
+  .dex-stat.fav { border-color: rgba(232,80,63,.35); }
+  .dex-stat.fav .ds-n { color: var(--red-deep); }
 
   .dex-tabs { display: flex; gap: 6px; margin: 14px 0 10px; }
   .dex-tab {
@@ -745,7 +760,8 @@
       <div id="dexStats" class="dex-stats"></div>
 
       <div class="dex-tabs">
-        <button class="dex-tab active" data-tab="hist" data-i18n="dexTabHist">뽑은 곳</button>
+        <button class="dex-tab active" data-tab="fav" data-i18n="dexTabFav">맛집</button>
+        <button class="dex-tab" data-tab="hist" data-i18n="dexTabHist">뽑은 곳</button>
         <button class="dex-tab" data-tab="block" data-i18n="dexTabBlock">제외한 곳</button>
       </div>
 
@@ -767,23 +783,24 @@
       <div class="menu-title" data-i18n="menuTitle">📋 대표 메뉴</div>
       <ul class="menu"></ul>
       <div class="place-extra hidden">
-        <a class="placelink routelink hidden" target="_blank" rel="noopener" data-i18n="routeLink">길찾기 ↗</a>
-        <a class="placelink maplink" target="_blank" rel="noopener" data-i18n="mapLink">카카오맵에서 보기 ↗</a>
+        <a class="placelink routelink hidden" target="_blank" rel="noopener" data-i18n="routeLink">길찾기</a>
+        <a class="placelink maplink" target="_blank" rel="noopener" data-i18n="mapLink">카카오맵 보기</a>
       </div>
+      <div class="row">
+        <button class="btn" id="againBtn" data-i18n="againBtn">한 번 더 뽑기</button>
+        <button class="btn ghost" id="researchBtn" data-i18n="researchBtn">식당 재검색</button>
+      </div>
+      <div class="act-row">
+        <button class="actbtn" id="favBtn" data-i18n="favBtn">맛집으로 저장</button>
+        <button class="actbtn" id="shareBtn" data-i18n="shareBtn">공유하기</button>
+      </div>
+      <button class="quietbtn" id="blockBtn" data-i18n="blockBtn">여긴 싫어</button>
       <div id="radiusBarResult" class="radius-bar">
           <button class="rchip" data-r="500">500m</button>
         <button class="rchip" data-r="1000">1km</button>
         <button class="rchip" data-r="2000">2km</button>
         <button class="rchip" data-r="3000">3km</button>
         <button class="rchip" data-r="5000">5km</button>
-      </div>
-      <div class="act-row">
-        <button class="actbtn" id="shareBtn" data-i18n="shareBtn">📤 공유하기</button>
-        <button class="actbtn danger" id="blockBtn" data-i18n="blockBtn">🙅 여긴 싫어</button>
-      </div>
-      <div class="row">
-        <button class="btn" id="againBtn" data-i18n="againBtn">한 번 더 뽑기</button>
-        <button class="btn ghost" id="researchBtn" data-i18n="researchBtn">식당 재검색</button>
       </div>
     </div>
   </div>
@@ -885,8 +902,8 @@ const I18N = {
     meetMidPoint: "중간 지점",
 
     menuTitle: "📋 대표 메뉴",
-    routeLink: "길찾기 ↗",
-    mapLink: "카카오맵에서 보기 ↗",
+    routeLink: "길찾기",
+    mapLink: "카카오맵 보기",
     againBtn: "한 번 더 뽑기",
     researchBtn: "식당 재검색",
     free: "무료",
@@ -899,18 +916,25 @@ const I18N = {
     picks: ["🎉 오늘의 픽!", "✨ 캡슐 속 행운!", "🍀 이걸로 정했다!", "🥁 두구두구… 당첨!", "😋 점심 결정 완료!"],
     gradeNote: (cat, n) => (n <= 1) ? `이 반경에 하나뿐인 ${cat}` : `이 반경에 ${n}곳뿐인 ${cat}`,
 
-    shareBtn: "📤 공유하기",
+    shareBtn: "공유하기",
     shareCopied: "✅ 복사했어요",
     shareFail: "⚠️ 공유 실패",
     shareHead: name => `🍚 가챠밥이 뽑아준 오늘 점심: ${name}`,
-    blockBtn: "🙅 여긴 싫어",
+    blockBtn: "여긴 싫어",
     blockDone: "✅ 제외했어요",
+    favBtn: "맛집으로 저장",
+    favSaved: "⭐ 저장됨",
 
-    dexBtnTitle: "뽑은 기록",
-    dexTitle: "📖 뽑은 기록",
+    dexBtnTitle: "내 맛집·뽑은 기록",
+    dexTitle: "📖 내 기록",
+    dexTabFav: "맛집",
     dexTabHist: "뽑은 곳",
     dexTabBlock: "제외한 곳",
-    dexStatAll: "전체",
+    dexStatFav: "맛집",
+    dexStatAll: "뽑은 곳",
+    dexUnfav: "저장 해제",
+    dexClearFav: "맛집 목록 비우기",
+    dexEmptyFav: "저장한 맛집이 없어요.<br>결과 화면에서 '맛집으로 저장'을 누르면 여기에 모여요.",
     dexDrawn: n => `${n}번 뽑음`,
     dexUnblock: "다시 포함하기",
     dexClear: "기록 전체 지우기",
@@ -982,8 +1006,8 @@ const I18N = {
     meetMidPoint: "the midpoint",
 
     menuTitle: "📋 Popular menu",
-    routeLink: "Directions ↗",
-    mapLink: "View on Kakao Map ↗",
+    routeLink: "Directions",
+    mapLink: "Kakao Map",
     againBtn: "Draw again",
     researchBtn: "Search again",
     free: "Free",
@@ -998,18 +1022,25 @@ const I18N = {
     gradeNote: (cat, n) => (n <= 1) ? "The only place of its kind in this radius"
                                     : `Only ${n} places of this kind in this radius`,
 
-    shareBtn: "📤 Share",
+    shareBtn: "Share",
     shareCopied: "✅ Copied",
     shareFail: "⚠️ Share failed",
     shareHead: name => `🍚 GachaBab picked today's lunch: ${name}`,
-    blockBtn: "🙅 Not this one",
+    blockBtn: "Not this one",
     blockDone: "✅ Excluded",
+    favBtn: "Save as favorite",
+    favSaved: "⭐ Saved",
 
-    dexBtnTitle: "Draw history",
-    dexTitle: "📖 Draw history",
+    dexBtnTitle: "Favorites and history",
+    dexTitle: "📖 My places",
+    dexTabFav: "Favorites",
     dexTabHist: "Drawn",
     dexTabBlock: "Excluded",
-    dexStatAll: "Total",
+    dexStatFav: "Saved",
+    dexStatAll: "Drawn",
+    dexUnfav: "Remove",
+    dexClearFav: "Clear favorites",
+    dexEmptyFav: "No favorites yet.<br>Tap \"Save as favorite\" on a result to collect them here.",
     dexDrawn: n => `drawn ${n}×`,
     dexUnblock: "Put back",
     dexClear: "Clear all history",
@@ -1461,7 +1492,7 @@ function gradeClass(r) {
    drawnKeys는 한 세션 안에서 중복을 막는 용도라 앱을 끄면 사라진다.
    여기서는 "모아보는 재미" 쪽이라 따로 영구 저장한다.
    ============================================================ */
-const HIST_LS = "gachaHistory", BLOCK_LS = "gachaBlocked";
+const HIST_LS = "gachaHistory", BLOCK_LS = "gachaBlocked", FAV_LS = "gachaFavorites";
 const HIST_MAX = 200;
 
 function loadStore(k) {
@@ -1474,8 +1505,27 @@ function saveStore(k, v) {
 
 let history_ = loadStore(HIST_LS);
 let blocked_ = loadStore(BLOCK_LS);
+let favs_    = loadStore(FAV_LS);
 
 function isBlocked(key) { return blocked_.some(b => b.key === key); }
+function isFav(key) { return favs_.some(f => f.key === key); }
+
+// 맛집 저장 — 토글. 나중에 다시 찾아갈 수 있게 좌표·URL까지 같이 남긴다.
+function toggleFav(r) {
+  const key = restoKey(r);
+  if (!key) return false;
+  if (isFav(key)) { favs_ = favs_.filter(f => f.key !== key); saveStore(FAV_LS, favs_); return false; }
+  favs_.unshift({
+    key, ts: Date.now(),
+    name: r.name, ic: r.ic, cat: r.cat,
+    grade: r.grade || null, gradeCat: r.gradeCat || "", gradeCount: r.gradeCount || 0,
+    addr: r.addr || "", url: r.url || "",
+    lat: Number.isFinite(r.lat) ? r.lat : null, lng: Number.isFinite(r.lng) ? r.lng : null,
+  });
+  saveStore(FAV_LS, favs_);
+  return true;
+}
+function unfav(key) { favs_ = favs_.filter(f => f.key !== key); saveStore(FAV_LS, favs_); }
 
 function addHistory(r) {
   const key = restoKey(r);
@@ -1839,6 +1889,7 @@ function showResult(data) {
   const sb = $("#shareBtn"), bb = $("#blockBtn");
   sb.classList.remove("done"); sb.textContent = t("shareBtn"); sb.disabled = false;
   bb.classList.remove("done"); bb.textContent = t("blockBtn"); bb.disabled = false;
+  syncFavBtn(data);
 
   setTimeout(() => go(STATE.RESULT), 250);
 }
@@ -1900,6 +1951,21 @@ async function shareWinner() {
   }
 }
 
+// 저장 버튼은 이미 저장된 곳이면 눌린 상태로 열린다(다시 뽑혀도 헷갈리지 않게)
+function syncFavBtn(r) {
+  const btn = $("#favBtn");
+  const on = isFav(restoKey(r));
+  btn.classList.toggle("saved", on);
+  btn.textContent = on ? t("favSaved") : t("favBtn");
+}
+
+function favWinner() {
+  if (!winner) return;
+  const on = toggleFav(winner);
+  buzz(on ? [0, 20, 30, 20] : 14);
+  syncFavBtn(winner);
+}
+
 function blockWinner() {
   if (!winner) return;
   blockPlace(winner);
@@ -1916,7 +1982,7 @@ function blockWinner() {
 
 // ---- 도감 ----
 const dexWrap = $("#dexWrap");
-let dexTab = "hist";
+let dexTab = "fav";        // 저장한 맛집이 가장 쓸모 있으니 기본 탭
 
 function openDex() { renderDex(); dexWrap.classList.remove("hidden"); }
 function closeDex() { dexWrap.classList.add("hidden"); }
@@ -1932,42 +1998,27 @@ function renderDex() {
 
   // 상단 요약 — 등급별 수집 현황
   const ssr = history_.filter(h => h.grade === "SSR").length;
-  const sr  = history_.filter(h => h.grade === "SR").length;
   $("#dexStats").innerHTML =
+    `<div class="dex-stat fav"><div class="ds-n">${favs_.length}</div><div class="ds-l">${t("dexStatFav")}</div></div>` +
     `<div class="dex-stat"><div class="ds-n">${history_.length}</div><div class="ds-l">${t("dexStatAll")}</div></div>` +
-    `<div class="dex-stat ssr"><div class="ds-n">${ssr}</div><div class="ds-l">SSR</div></div>` +
-    `<div class="dex-stat sr"><div class="ds-n">${sr}</div><div class="ds-l">SR</div></div>`;
+    `<div class="dex-stat ssr"><div class="ds-n">${ssr}</div><div class="ds-l">SSR</div></div>`;
 
   document.querySelectorAll(".dex-tab").forEach(b => b.classList.toggle("active", b.dataset.tab === dexTab));
 
-  const rows = (dexTab === "hist") ? history_ : blocked_;
-  empty.innerHTML = (dexTab === "hist") ? t("dexEmptyHist") : t("dexEmptyBlock");   // 자체 문구라 <br> 허용
+  const rows = (dexTab === "fav") ? favs_ : (dexTab === "hist") ? history_ : blocked_;
+  empty.innerHTML = (dexTab === "fav") ? t("dexEmptyFav")        // 자체 문구라 <br> 허용
+                  : (dexTab === "hist") ? t("dexEmptyHist") : t("dexEmptyBlock");
   empty.classList.toggle("hidden", rows.length > 0);
-  clear.textContent = (dexTab === "hist") ? t("dexClear") : t("dexClearBlock");
+  clear.textContent = (dexTab === "fav") ? t("dexClearFav")
+                    : (dexTab === "hist") ? t("dexClear") : t("dexClearBlock");
   clear.classList.toggle("hidden", rows.length === 0);
 
   rows.forEach(r => {
+    const graded = (dexTab !== "block");
     const el = document.createElement("div");
-    el.className = "dex-item" + (dexTab === "hist" && r.grade === "SSR" ? " ssr"
-                              : dexTab === "hist" && r.grade === "SR" ? " sr" : "");
+    el.className = "dex-item" + (graded && r.grade === "SSR" ? " ssr" : graded && r.grade === "SR" ? " sr" : "");
 
-    if (dexTab === "hist") {
-      const ic = document.createElement("span"); ic.className = "di-ic"; ic.innerHTML = iconHTML(r.ic);
-      const body = document.createElement("div"); body.className = "di-body";
-      const nm = document.createElement("div"); nm.className = "di-name"; nm.textContent = r.name;
-      const sub = document.createElement("div"); sub.className = "di-sub";
-      sub.textContent = [catLabel(r.cat), dexDate(r.ts), (r.n > 1 ? t("dexDrawn")(r.n) : "")].filter(Boolean).join(" · ");
-      body.append(nm, sub);
-      el.append(ic, body);
-      if (r.grade === "SSR" || r.grade === "SR") {
-        const g = document.createElement("span"); g.className = "di-g"; g.textContent = r.grade;
-        el.appendChild(g);
-      }
-      if (r.url) {                              // 눌러서 카카오맵으로
-        el.style.cursor = "pointer";
-        el.addEventListener("click", () => window.open(r.url, "_blank", "noopener"));
-      }
-    } else {
+    if (dexTab === "block") {
       const ic = document.createElement("span"); ic.className = "di-ic"; ic.textContent = "🙅";
       const body = document.createElement("div"); body.className = "di-body";
       const nm = document.createElement("div"); nm.className = "di-name"; nm.textContent = r.name;
@@ -1976,6 +2027,34 @@ function renderDex() {
       btn.className = "di-act"; btn.textContent = "↩"; btn.title = t("dexUnblock");
       btn.addEventListener("click", () => { unblockPlace(r.key); renderDex(); });
       el.append(ic, body, btn);
+      list.appendChild(el);
+      return;
+    }
+
+    const ic = document.createElement("span"); ic.className = "di-ic"; ic.innerHTML = iconHTML(r.ic);
+    const body = document.createElement("div"); body.className = "di-body";
+    const nm = document.createElement("div"); nm.className = "di-name"; nm.textContent = r.name;
+    const sub = document.createElement("div"); sub.className = "di-sub";
+    // 맛집 목록은 다시 찾아가는 게 목적이라 주소를 우선 보여준다
+    sub.textContent = (dexTab === "fav")
+      ? (r.addr || [catLabel(r.cat), dexDate(r.ts)].filter(Boolean).join(" · "))
+      : [catLabel(r.cat), dexDate(r.ts), (r.n > 1 ? t("dexDrawn")(r.n) : "")].filter(Boolean).join(" · ");
+    body.append(nm, sub);
+    el.append(ic, body);
+
+    if (r.grade === "SSR" || r.grade === "SR") {
+      const g = document.createElement("span"); g.className = "di-g"; g.textContent = r.grade;
+      el.appendChild(g);
+    }
+    if (dexTab === "fav") {
+      const del = document.createElement("button");
+      del.className = "di-act"; del.textContent = "✕"; del.title = t("dexUnfav");
+      del.addEventListener("click", e => { e.stopPropagation(); unfav(r.key); renderDex(); });
+      el.appendChild(del);
+    }
+    if (r.url) {                                // 눌러서 카카오맵으로
+      el.style.cursor = "pointer";
+      el.addEventListener("click", () => window.open(r.url, "_blank", "noopener"));
     }
     list.appendChild(el);
   });
@@ -1988,10 +2067,12 @@ document.querySelectorAll(".dex-tab").forEach(b =>
   b.addEventListener("click", () => { dexTab = b.dataset.tab; renderDex(); }));
 $("#dexClear").addEventListener("click", () => {
   if (!confirm(t("dexClearConfirm"))) return;
-  if (dexTab === "hist") { history_ = []; saveStore(HIST_LS, history_); updateDexCount(); }
+  if (dexTab === "fav") { favs_ = []; saveStore(FAV_LS, favs_); }
+  else if (dexTab === "hist") { history_ = []; saveStore(HIST_LS, history_); updateDexCount(); }
   else { blocked_ = []; saveStore(BLOCK_LS, blocked_); fillDome(); }
   renderDex();
 });
+$("#favBtn").addEventListener("click", favWinner);
 $("#shareBtn").addEventListener("click", shareWinner);
 $("#blockBtn").addEventListener("click", blockWinner);
 updateDexCount();
