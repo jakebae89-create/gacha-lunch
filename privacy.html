@@ -18,6 +18,8 @@
   p, li { color:#e8e5f7; }
   ul { padding-left:20px; }
   a { color:#9fd0ff; }
+  .back { display:inline-block; margin-bottom:18px; font-size:.85rem; color:var(--muted); text-decoration:none; }
+  .back:hover { color:var(--ink); }
   .box { background:var(--panel); border-radius:12px; padding:16px 18px; margin-top:8px; }
   code { background:rgba(255,255,255,.08); padding:1px 6px; border-radius:5px; }
   footer { color:var(--muted); font-size:.8rem; margin-top:40px; }
@@ -25,13 +27,16 @@
 </head>
 <body>
 <main>
+  <a class="back" href="index.html">← 가챠밥으로 돌아가기</a>
   <h1>개인정보처리방침</h1>
-  <div class="updated">가챠밥 (GachaBap) · 시행일: 2026-06-27</div>
+  <div class="updated">가챠밥 (GachaBap) · 시행일: 2026-08-05</div>
 
   <p>
     본 방침은 모바일/웹 애플리케이션 <b>‘가챠밥’</b>(이하 “본 앱”)이 이용자의 정보를
     어떻게 다루는지 설명합니다. 본 앱은 별도의 회원가입이 없으며, 개발자가 운영하는 서버로
-    개인정보를 수집·저장·전송하지 않습니다.
+    개인정보를 수집·저장·전송하지 않습니다. 다만 본 앱은 무료로 제공되며 <b>광고를 게재</b>하므로,
+    광고 제공을 위해 제3자(Google)가 이용자의 기기 정보를 처리할 수 있습니다. 자세한 내용은
+    아래 <b>4. 광고</b> 항목을 확인해 주세요.
   </p>
 
   <h2>1. 수집하는 정보</h2>
@@ -45,7 +50,13 @@
         (<code>localStorage</code>)에만 저장됩니다.</li>
       <li><b>퀴즈 점수·랭킹(명예의 전당)</b> — 레트로 퀴즈의 기록은 기기의
         <code>localStorage</code>에만 저장되며 외부로 전송되지 않습니다.</li>
+      <li><b>뽑은 기록·맛집·제외 목록</b> — 도감, 맛집 저장, ‘여긴 싫어’ 목록은 기기의
+        <code>localStorage</code>에만 저장되며 외부로 전송되지 않습니다.</li>
     </ul>
+    <p>
+      단, 광고 게재를 위해 <b>광고 식별자(Android 광고 ID) 등 기기 정보가 Google에 의해 처리</b>됩니다.
+      이 정보는 개발자가 수집하거나 열람하지 않으며, 자세한 내용은 <b>4. 광고</b> 항목을 참고해 주세요.
+    </p>
   </div>
 
   <h2>2. 제3자(카카오) 서비스</h2>
@@ -63,19 +74,50 @@
   <h2>3. 권한 안내</h2>
   <ul>
     <li><b>위치(Location)</b> — 주변 식당을 찾기 위해 사용. 거부해도 더미 데이터로 앱 이용 가능.</li>
-    <li><b>인터넷(Network)</b> — 카카오 지도 데이터를 불러오기 위해 사용.</li>
+    <li><b>인터넷(Network)</b> — 카카오 지도 데이터를 불러오고 광고를 표시하기 위해 사용.</li>
   </ul>
 
-  <h2>4. 광고·분석·추적</h2>
-  <p>본 앱은 광고를 게재하지 않으며, 분석 도구(애널리틱스)나 광고 식별자를 통한 추적을 하지 않습니다.</p>
+  <h2>4. 광고 (Google AdMob)</h2>
+  <div class="box">
+    <p>
+      본 앱은 무료로 제공되며, 운영을 위해 <b>Google AdMob</b>을 통해 배너 광고를 게재합니다.
+    </p>
+    <ul>
+      <li>Google을 포함한 제3자 공급업체는 <b>쿠키 및 광고 식별자</b>를 사용하여 광고를 게재합니다.</li>
+      <li>Google은 광고 식별자를 사용하여, 이용자가 본 앱 및 다른 앱·웹사이트를 이용한 기록을 바탕으로
+        광고를 게재할 수 있습니다.</li>
+      <li>개발자는 이용자의 광고 식별자를 <b>수집·저장·열람하지 않습니다.</b> 해당 정보는 Google이
+        자체 정책에 따라 처리합니다.</li>
+    </ul>
+    <p>
+      이용자는 개인 맞춤 광고를 원하지 않을 경우 아래 방법으로 거부할 수 있습니다.
+    </p>
+    <ul>
+      <li>Android: <b>설정 → Google → 광고</b>에서 ‘광고 ID 삭제’ 또는 ‘맞춤 광고 선택 해제’</li>
+      <li>Google 광고 설정: <a href="https://myadcenter.google.com" target="_blank" rel="noopener">https://myadcenter.google.com</a></li>
+    </ul>
+    <p>
+      · Google의 광고 관련 데이터 처리:
+      <a href="https://policies.google.com/technologies/ads" target="_blank" rel="noopener">https://policies.google.com/technologies/ads</a>
+      <br />· Google 개인정보처리방침:
+      <a href="https://policies.google.com/privacy" target="_blank" rel="noopener">https://policies.google.com/privacy</a>
+    </p>
+    <p>
+      본 앱은 별도의 분석 도구(애널리틱스)를 사용하지 않습니다.
+    </p>
+  </div>
 
   <h2>5. 아동의 개인정보</h2>
-  <p>본 앱은 개인정보를 수집하지 않으므로 아동으로부터 어떠한 개인정보도 수집하지 않습니다.</p>
+  <p>
+    본 앱은 아동을 주 대상으로 하지 않으며, 개발자가 직접 아동의 개인정보를 수집하지 않습니다.
+    광고는 Google AdMob을 통해 게재되며, 관련 데이터 처리는 Google의 정책을 따릅니다.
+  </p>
 
   <h2>6. 데이터 삭제</h2>
   <p>
-    기기에 저장된 모든 정보(카카오 키, 퀴즈 기록)는 앱(또는 브라우저)의 데이터/캐시를 삭제하거나
-    앱을 제거하면 함께 삭제됩니다.
+    기기에 저장된 모든 정보(카카오 키, 퀴즈 기록, 뽑은 기록·맛집·제외 목록)는 앱(또는 브라우저)의
+    데이터/캐시를 삭제하거나 앱을 제거하면 함께 삭제됩니다. 광고 식별자는 위 <b>4. 광고</b> 항목의
+    안내에 따라 기기 설정에서 삭제·초기화할 수 있습니다.
   </p>
 
   <h2>7. 방침 변경</h2>
