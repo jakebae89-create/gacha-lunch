@@ -105,9 +105,11 @@ Codemagic이 자동으로 서명하고 업로드하려면 이 키가 필요합�
 
 ### 4단계 — Codemagic 연결
 
-codemagic.io 가입(GitHub 계정으로) →
+**2026-08-09 가입·저장소 연결 완료** — GitHub App을 `gacha-lunch` 한 곳에만 설치(코드는 읽기 전용).
+Codemagic이 main 브랜치의 `codemagic.yaml` 을 읽고 있는 것까지 확인함.
+**2·3번은 애플 승인 후에 할 일이고, 그전에 빌드를 돌리면 반드시 실패한다.**
 
-1. `jakebae89-create/gacha-lunch` 저장소 연결
+1. ~~`jakebae89-create/gacha-lunch` 저장소 연결~~ (완료)
 2. **Teams → Integrations → App Store Connect** 에 3단계의 키 3종을 등록.
    **이름은 반드시 `gachalunch`** 로 지으세요 — `codemagic.yaml`이 그 이름을 찾습니다.
 3. `codemagic.yaml`의 `APP_STORE_APP_ID: 0000000000` 을 2단계에서 복사한 숫자로 교체 → 커밋·push
@@ -148,12 +150,20 @@ Android는 `capacitor.config.json`의 `androidScheme: "https"` + `hostname` 덕�
 `capacitor://jakebae89-create.github.io` 가 됩니다. 카카오 서버가 이 Referer를 보고
 등록 안 된 도메인이라고 거절할 수 있습니다.
 
-**대응 순서:**
+**대응 상황:**
 
-1. 카카오 개발자 콘솔 → 내 애플리케이션 → 앱 설정 → **플랫폼 → Web** 의 사이트 도메인에
-   `capacitor://jakebae89-create.github.io` 추가를 시도. (형식 검증에 걸려 거부될 수 있음)
-2. 같은 화면의 **플랫폼 → iOS** 에 번들 ID `com.gachalunch.app` 등록 (무료, 해둬서 나쁠 것 없음)
-3. 그래도 안 되면 최후 수단으로 `capacitor.config.json` 에
+1. **2026-08-09 카카오 콘솔에 `capacitor://jakebae89-create.github.io` 등록 완료.**
+   경로는 콘솔 개편으로 바뀌었음 — **앱 설정 → 플랫폼 키 → JavaScript 키(Default JS Key) → JS SDK 도메인**.
+   (예전의 "플랫폼 → Web 사이트 도메인"이 키 안으로 들어감.)
+   형식 검증에 걸릴까 걱정했으나 `capacitor://` 스킴이 그대로 저장됐음. **최대 걸림돌은 넘음.**
+   - 남은 불확실성: 콘솔이 문자열을 받아준 것과, 런타임에 카카오 서버가 Referer를 대조해
+     통과시키는 것은 별개다. **최종 확인은 여전히 TestFlight에서.**
+   - iOS 번들 ID 등록은 **불필요**. 그건 네이티브 앱 키에 딸린 설정이고 가챠밥은 웹뷰에서
+     JavaScript SDK만 쓴다.
+   - 참고: 등록된 로컬 도메인이 `http://localhost:8777` 인데 `.claude/launch.json` 의 미리보기는
+     **8778**이다. 로컬에서 실제 카카오 검색까지 테스트하려면 8778도 등록해야 한다
+     (지금은 더미 데이터로 폴백되므로 화면 확인에는 지장 없음).
+2. 그래도 안 되면 최후 수단으로 `capacitor.config.json` 에
    `"server": { "url": "https://jakebae89-create.github.io/gacha-lunch/" }` 를 넣어
    앱이 웹을 직접 띄우게 합니다.
    **단 이건 권하지 않습니다** — 오프라인에서 앱이 백지가 되고,
