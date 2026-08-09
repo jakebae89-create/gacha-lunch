@@ -5,5 +5,8 @@
   "server": {
     "androidScheme": "https",
     "hostname": "jakebae89-create.github.io"
+  },
+  "ios": {
+    "includePlugins": []
   }
 }

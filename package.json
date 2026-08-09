@@ -8,12 +8,16 @@
     "build:www": "node scripts/build-www.mjs",
     "sync": "npm run build:www && cap sync android",
     "open:android": "cap open android",
-    "shots": "node scripts/shots.mjs"
+    "shots": "node scripts/shots.mjs",
+    "sync:ios": "npm run build:www && cap sync ios",
+    "sync:all": "npm run build:www && cap sync android && cap sync ios",
+    "open:ios": "cap open ios"
   },
   "dependencies": {
     "@capacitor-community/admob": "^7.0.0",
     "@capacitor/android": "^7.0.0",
-    "@capacitor/core": "^7.0.0"
+    "@capacitor/core": "^7.0.0",
+    "@capacitor/ios": "^7.6.8"
   },
   "devDependencies": {
     "@capacitor/cli": "^7.0.0",

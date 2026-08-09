@@ -109,4 +109,24 @@ $dir = Split-Path -Parent $MyInvocation.MyCommand.Path
 New-Icon 512 (Join-Path $dir "icon-512.png")
 New-Icon 192 (Join-Path $dir "icon-192.png")
 New-Icon 180 (Join-Path $dir "apple-touch-icon-180.png")
+
+# ── iOS 앱 아이콘 (1024) ──
+# 앱스토어는 알파 채널이 있는 아이콘을 거부하므로 24bpp(불투명)로 다시 굽는다.
+$iosIcon = Join-Path $dir "ios\App\App\Assets.xcassets\AppIcon.appiconset\AppIcon-512@2x.png"
+if (Test-Path (Split-Path $iosIcon)) {
+  $tmp = Join-Path $env:TEMP "gacha-icon-1024.png"
+  New-Icon 1024 $tmp
+  $src  = [System.Drawing.Image]::FromFile($tmp)
+  $flat = New-Object System.Drawing.Bitmap(1024, 1024, [System.Drawing.Imaging.PixelFormat]::Format24bppRgb)
+  $gf   = [System.Drawing.Graphics]::FromImage($flat)
+  $gf.DrawImage($src, 0, 0, 1024, 1024)
+  $gf.Dispose(); $src.Dispose()
+  $flat.Save($iosIcon, [System.Drawing.Imaging.ImageFormat]::Png)
+  $flat.Dispose()
+  Remove-Item $tmp -Force
+  Write-Host "saved $iosIcon (1024 x 1024, alpha 없음)"
+} else {
+  Write-Host "(건너뜀) ios/ 프로젝트가 없어 앱스토어 아이콘은 만들지 않음"
+}
+
 Write-Host "done."

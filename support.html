@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>고객지원 — 가챠밥</title>
+<style>
+  :root { --bg:#0f0a1f; --panel:#1c1834; --ink:#f5f3ff; --muted:#b9b4d6; --accent:#ffd34e; }
+  * { box-sizing:border-box; }
+  body {
+    margin:0; padding:24px 16px 64px; background:var(--bg); color:var(--ink);
+    font-family:"Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif; line-height:1.7;
+  }
+  main { max-width:720px; margin:0 auto; }
+  h1 { font-size:1.5rem; margin:0 0 4px; }
+  .updated { color:var(--muted); font-size:.85rem; margin-bottom:24px; }
+  h2 { font-size:1.1rem; margin:28px 0 8px; color:var(--accent); }
+  p, li { color:#e8e5f7; }
+  ul { padding-left:20px; }
+  a { color:#9fd0ff; }
+  .back { display:inline-block; margin-bottom:18px; font-size:.85rem; color:var(--muted); text-decoration:none; }
+  .back:hover { color:var(--ink); }
+  .box { background:var(--panel); border-radius:12px; padding:16px 18px; margin-top:8px; }
+  footer { color:var(--muted); font-size:.8rem; margin-top:40px; }
+  .en { color:var(--muted); font-size:.9rem; }
+</style>
+</head>
+<body>
+<main>
+  <a class="back" href="index.html">← 가챠밥으로 돌아가기</a>
+  <h1>고객지원 · Support</h1>
+  <div class="updated">가챠밥 (GachaBap)</div>
+
+  <div class="box">
+    <p>
+      문의·버그 제보·기능 제안은 아래 이메일로 보내주세요. 보통 2~3일 안에 답장드립니다.<br />
+      <span class="en">For questions, bug reports, or feature requests, please email us. We usually reply within 2–3 days.</span>
+    </p>
+    <p style="font-size:1.1rem">
+      ✉ <a href="mailto:jakebae89@gmail.com">jakebae89@gmail.com</a>
+    </p>
+  </div>
+
+  <h2>자주 묻는 질문</h2>
+
+  <div class="box">
+    <p><b>Q. 주변 식당이 안 나와요.</b></p>
+    <p>
+      위치 권한이 꺼져 있으면 검색이 되지 않습니다. iPhone은
+      <b>설정 → 개인정보 보호 및 보안 → 위치 서비스 → 가챠밥</b>에서
+      ‘앱을 사용하는 동안’으로 켜주세요. 실내나 지하에서는 위치가 늦게 잡힐 수 있습니다.
+    </p>
+
+    <p><b>Q. 문 닫은 가게가 뽑혔어요.</b></p>
+    <p>
+      식당 정보는 카카오맵 데이터를 기준으로 합니다. 카카오맵 API는 영업시간·영업 여부를
+      제공하지 않아 실제와 다를 수 있습니다. 결과 화면의 ‘여긴 싫어’를 누르면
+      해당 가게는 다음부터 나오지 않습니다.
+    </p>
+
+    <p><b>Q. 저장한 맛집·뽑은 기록이 사라졌어요.</b></p>
+    <p>
+      저장 데이터는 서버가 아니라 기기 안에만 있습니다. 앱을 삭제하거나 브라우저
+      데이터를 지우면 함께 사라지며 복구할 수 없습니다.
+    </p>
+
+    <p><b>Q. 회원가입이 필요한가요?</b></p>
+    <p>필요 없습니다. 계정 없이 바로 쓸 수 있고, 개발자 서버로 보내는 개인정보도 없습니다.</p>
+  </div>
+
+  <h2>관련 문서</h2>
+  <div class="box">
+    <p>· <a href="privacy.html">개인정보처리방침</a></p>
+  </div>
+
+  <footer>© 가챠밥 (GachaBap)</footer>
+</main>
+</body>
+</html>
