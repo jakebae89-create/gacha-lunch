@@ -34,7 +34,7 @@ workflows:
       vars:
         XCODE_WORKSPACE: "App.xcworkspace"
         XCODE_SCHEME: "App"
-        APP_STORE_APP_ID: 0000000000 # <-- App Store Connect > 앱 > 앱 정보 > Apple ID 숫자로 교체
+        APP_STORE_APP_ID: 6799631769 # App Store Connect > 앱 > 앱 정보 > Apple ID
       node: 20
       xcode: latest
       cocoapods: default
