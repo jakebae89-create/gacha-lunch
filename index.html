@@ -955,6 +955,10 @@ const I18N = {
     fbDenied: "📍 위치 권한이 거부돼 더미 데이터로 진행합니다",
     fbEmpty: "🤔 주변에서 식당을 못 찾아 더미로 진행합니다",
     fbSdk: "🔑 키/도메인을 확인하세요 — 더미로 진행합니다",
+    fbBlocked: "🚫 카카오가 이 앱의 도메인을 거부했습니다 — 더미로 진행합니다",
+    fbTimeout: "⏳ 카카오 지도 응답이 없습니다 — 더미로 진행합니다",
+    fbSearchBlocked: "🔒 장소검색 요청이 차단됐습니다 — 더미로 진행합니다",
+    fbRest: "⚠️ 장소검색 응답 오류 — 더미로 진행합니다",
     fbEtc: "⚠️ 불러오지 못해 더미 데이터로 진행합니다",
 
     cats: { 전체:"전체", 한식:"한식", 중식:"중식", 일식:"일식", 양식:"양식",
@@ -1062,6 +1066,10 @@ const I18N = {
     fbDenied: "📍 Location denied — showing demo data",
     fbEmpty: "🤔 No restaurants found nearby — showing demo data",
     fbSdk: "🔑 Check your key/domain — showing demo data",
+    fbBlocked: "🚫 Kakao rejected this app's domain — showing demo data",
+    fbTimeout: "⏳ No response from Kakao Maps — showing demo data",
+    fbSearchBlocked: "🔒 Place search request was blocked — showing demo data",
+    fbRest: "⚠️ Place search returned an error — showing demo data",
     fbEtc: "⚠️ Couldn't load — showing demo data",
 
     cats: { 전체:"All", 한식:"Korean", 중식:"Chinese", 일식:"Japanese", 양식:"Western",
@@ -1305,8 +1313,16 @@ function loadKakaoSdk(key) {
     const s = document.createElement("script");
     s.src = "https://dapi.kakao.com/v2/maps/sdk.js?appkey=" +
             encodeURIComponent(key) + "&libraries=services&autoload=false";
-    s.onload = () => window.kakao.maps.load(resolve);
-    s.onerror = () => { sdkPromise = null; reject(new Error("sdk-load")); };
+    // 도메인이 등록돼 있지 않으면 카카오는 200 응답에 실패 스크립트를 준다.
+    // 그러면 onerror도 안 타고 window.kakao도 안 생겨서, 예전 코드는 여기서 영영 멈췄다.
+    const fail = (why) => { clearTimeout(timer); sdkPromise = null; reject(new Error(why)); };
+    const timer = setTimeout(() => fail("sdk-timeout"), 8000);
+    s.onload = () => {
+      if (!window.kakao || !window.kakao.maps) { fail("sdk-blocked"); return; }
+      try { window.kakao.maps.load(() => { clearTimeout(timer); resolve(); }); }
+      catch (e) { fail("sdk-blocked"); }
+    };
+    s.onerror = () => fail("sdk-load");
     document.head.appendChild(s);
   });
   return sdkPromise;
@@ -1322,8 +1338,18 @@ function getPosition() {
 }
 
 function categorySearch(ps, code, loc, radius, page) {
+  // 카카오 SDK는 요청이 막히면 콜백을 아예 안 부른다(웹뷰 커스텀 스킴에서 실제로 발생).
+  // 타임아웃이 없으면 '담는 중'에서 영영 멈추므로 여기서 끊어준다.
   return new Promise(resolve => {
+    let done = false;
+    const timer = setTimeout(() => {
+      if (done) return;
+      done = true;
+      resolve({ list: [], hasNext: false, timedOut: true });
+    }, 8000);
     ps.categorySearch(code, (data, status, pg) => {
+      if (done) return;
+      done = true; clearTimeout(timer);
       const ok = status === kakao.maps.services.Status.OK;
       resolve({ list: ok ? data : [], hasNext: ok && pg && pg.hasNextPage });
     }, { location: loc, radius, sort: kakao.maps.services.SortBy.DISTANCE, page });
@@ -1334,7 +1360,9 @@ async function fetchAllPages(code, loc, radius, maxPages = 3) {
   const ps = new kakao.maps.services.Places();
   let all = [];
   for (let p = 1; p <= maxPages; p++) {
-    const { list, hasNext } = await categorySearch(ps, code, loc, radius, p);
+    const { list, hasNext, timedOut } = await categorySearch(ps, code, loc, radius, p);
+    // 첫 페이지부터 응답이 없으면 네트워크가 막힌 것 — 빈 결과와 구분해서 알린다
+    if (timedOut && p === 1 && !all.length) throw new Error("search-timeout");
     all = all.concat(list);
     if (!hasNext) break;
   }
@@ -1365,13 +1393,62 @@ function searchPoints(lat, lng, radius) {
   return pts.length ? pts : [{ lat, lng, r: radius }];
 }
 
+// ---- iOS 전용 장소검색 경로 ----
+// iOS 웹뷰의 출처는 capacitor:// 라서 카카오 JS SDK의 장소검색이 응답을 주지 않는다
+// (같은 폰 사파리에서는 같은 키로 정상 동작 → 키가 아니라 출처 문제).
+// 그래서 iOS에서만 REST 장소검색을 Capacitor 네이티브 HTTP로 부른다.
+// 네이티브가 직접 요청하므로 CORS도 도메인 검사도 타지 않는다.
+// 키는 빌드 시 scripts/build-www.mjs 가 주입한다(저장소·웹에는 남기지 않음).
+const KAKAO_REST_KEY = "__KAKAO_REST_KEY__";
+
+function useRestSearch() {
+  const C = window.Capacitor;
+  return !!(C && typeof C.getPlatform === "function" && C.getPlatform() === "ios" &&
+            C.Plugins && C.Plugins.CapacitorHttp &&
+            KAKAO_REST_KEY && !KAKAO_REST_KEY.startsWith("__"));
+}
+
+async function restCategorySearch(code, pt, radius, page) {
+  const res = await window.Capacitor.Plugins.CapacitorHttp.request({
+    method: "GET",
+    url: "https://dapi.kakao.com/v2/local/search/category.json",
+    headers: { Authorization: "KakaoAK " + KAKAO_REST_KEY },
+    params: {
+      category_group_code: code,
+      x: String(pt.lng), y: String(pt.lat),
+      radius: String(Math.min(20000, Math.max(1, Math.round(radius)))),
+      size: "15", page: String(page), sort: "distance",
+    },
+  });
+  // 실패 원인을 기기 화면에서 바로 알 수 있게 상태 코드를 메시지에 싣는다
+  if (res.status !== 200) throw new Error("rest:" + res.status);
+  const data = typeof res.data === "string" ? JSON.parse(res.data) : res.data;
+  return { list: data.documents || [], hasNext: !(data.meta && data.meta.is_end) };
+}
+
+async function fetchAllPagesRest(code, pt, radius, maxPages = 3) {
+  let all = [];
+  for (let p = 1; p <= maxPages; p++) {
+    const { list, hasNext } = await restCategorySearch(code, pt, radius, p);
+    all = all.concat(list);
+    if (!hasNext) break;
+  }
+  return all;
+}
+
 async function fetchKakao(coords, key, radius = 1000) {
-  await loadKakaoSdk(key);
+  const rest = useRestSearch();
+  if (!rest) await loadKakaoSdk(key);
   const { latitude: uLat, longitude: uLng } = coords;
   const pts = searchPoints(uLat, uLng, radius);
 
   const tasks = [];
   for (const p of pts) {
+    if (rest) {
+      tasks.push(fetchAllPagesRest("FD6", p, p.r));   // 음식점
+      tasks.push(fetchAllPagesRest("CE7", p, p.r));   // 카페
+      continue;
+    }
     const loc = new kakao.maps.LatLng(p.lat, p.lng);
     tasks.push(fetchAllPages("FD6", loc, p.r));   // 음식점
     tasks.push(fetchAllPages("CE7", loc, p.r));   // 카페
@@ -1732,6 +1809,10 @@ function fallbackMsg(err) {
   if (err && err.code === 1) return t("fbDenied");
   if (err && err.message === "empty") return t("fbEmpty");
   if (err && err.message === "sdk-load") return t("fbSdk");
+  if (err && err.message === "sdk-blocked") return t("fbBlocked");
+  if (err && err.message === "sdk-timeout") return t("fbTimeout");
+  if (err && err.message === "search-timeout") return t("fbSearchBlocked");
+  if (err && /^rest:/.test(err.message || "")) return t("fbRest") + " (" + err.message.slice(5) + ")";
   return t("fbEtc");
 }
 
