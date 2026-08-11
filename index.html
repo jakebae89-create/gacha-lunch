@@ -2190,7 +2190,7 @@ if ("serviceWorker" in navigator) {
   });
 }
 
-// ---- AdMob 배너 광고 (플레이스토어 앱에서만 동작, 웹에서는 무시) ----
+// ---- AdMob 배너 광고 (안드로이드 앱에서만 동작, iOS·웹에서는 무시) ----
 // BANNER_AD_ID : 가챠밥 실제 배너 광고 단위 ID (AdMob 콘솔에서 발급, 2026-07-04)
 // USE_TEST_ADS : 개발/테스트 중에는 true 유지(실제 ID여도 테스트 광고만 표시 → 본인 클릭 안전).
 //                ★출시용 release 빌드 직전에 딱 이 값만 false 로 바꿀 것★
@@ -2202,8 +2202,11 @@ const ACTIVE_AD_ID = USE_TEST_ADS ? ADMOB_TEST_BANNER_ID : BANNER_AD_ID;
 
 (async function initAdMobBanner() {
   const Cap = window.Capacitor;
-  // 네이티브 앱(Capacitor)에서만 실행 — 일반 웹/PWA에서는 아무것도 안 함
-  if (!Cap || typeof Cap.isNativePlatform !== "function" || !Cap.isNativePlatform()) return;
+  // 안드로이드 앱에서만 실행 — 일반 웹/PWA와 iOS에서는 아무것도 안 함.
+  // 앱스토어 버전은 광고를 넣지 않기로 했고 개인정보처리방침 4항에 그렇게 고지돼 있다.
+  // 실제 차단은 capacitor.config.json의 ios.includePlugins:[] 가 하고(팟 자체가 안 붙음)
+  // 여기 가드는 그 설정이 풀렸을 때를 대비한 두 번째 잠금이다.
+  if (!Cap || typeof Cap.getPlatform !== "function" || Cap.getPlatform() !== "android") return;
   const AdMob = Cap.Plugins && Cap.Plugins.AdMob;
   if (!AdMob) { console.warn("AdMob 플러그인을 찾을 수 없습니다."); return; }
 
