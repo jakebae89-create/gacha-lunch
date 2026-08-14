@@ -1426,6 +1426,19 @@ async function restCategorySearch(code, pt, radius, page) {
   return { list: data.documents || [], hasNext: !(data.meta && data.meta.is_end) };
 }
 
+// 키워드(장소·주소) 검색 — 중간지점의 친구 위치 검색이 쓴다
+async function restKeywordSearch(q, size = 6) {
+  const res = await window.Capacitor.Plugins.CapacitorHttp.request({
+    method: "GET",
+    url: "https://dapi.kakao.com/v2/local/search/keyword.json",
+    headers: { Authorization: "KakaoAK " + KAKAO_REST_KEY },
+    params: { query: q, size: String(size) },
+  });
+  if (res.status !== 200) throw new Error("rest:" + res.status);
+  const data = typeof res.data === "string" ? JSON.parse(res.data) : res.data;
+  return data.documents || [];
+}
+
 async function fetchAllPagesRest(code, pt, radius, maxPages = 3) {
   let all = [];
   for (let p = 1; p <= maxPages; p++) {
@@ -2318,36 +2331,44 @@ async function meetSearch() {
   meetResults.classList.remove("hidden");
   meetResults.innerHTML = `<div class="meet-loading">${escapeHtml(t("meetSearching"))}</div>`;
   try {
+    if (useRestSearch()) {                       // iOS는 JS SDK 장소검색이 막혀 REST로 간다
+      renderMeetResults(await restKeywordSearch(q));
+      return;
+    }
     await loadKakaoSdk(getKey());
     const ps = new kakao.maps.services.Places();
     ps.keywordSearch(q, (data, status) => {
-      if (status !== kakao.maps.services.Status.OK || !data.length) {
-        meetResults.innerHTML = `<div class="mr-empty">${escapeHtml(t("meetNoResult"))}</div>`;
-        return;
-      }
-      meetResults.innerHTML = "";
-      data.slice(0, 6).forEach(d => {
-        const b = document.createElement("button");
-        b.className = "mr";
-        b.innerHTML =
-          `<div class="mr-name">${escapeHtml(d.place_name)}</div>` +
-          `<div class="mr-addr">${escapeHtml(d.road_address_name || d.address_name || "")}</div>`;
-        b.addEventListener("click", () => {
-          addMeetPoint({
-            name: d.place_name,
-            addr: d.road_address_name || d.address_name || "",
-            lat: +d.y, lng: +d.x, isMe: false,
-          });
-          meetResults.classList.add("hidden");
-          meetResults.innerHTML = "";
-          meetInput.value = "";
-        });
-        meetResults.appendChild(b);
-      });
+      renderMeetResults(status === kakao.maps.services.Status.OK ? data : []);
     });
   } catch (err) {
     meetResults.innerHTML = `<div class="mr-empty">${escapeHtml(t("meetSearchFail"))}</div>`;
   }
+}
+
+function renderMeetResults(list) {
+  if (!list.length) {
+    meetResults.innerHTML = `<div class="mr-empty">${escapeHtml(t("meetNoResult"))}</div>`;
+    return;
+  }
+  meetResults.innerHTML = "";
+  list.slice(0, 6).forEach(d => {
+    const b = document.createElement("button");
+    b.className = "mr";
+    b.innerHTML =
+      `<div class="mr-name">${escapeHtml(d.place_name)}</div>` +
+      `<div class="mr-addr">${escapeHtml(d.road_address_name || d.address_name || "")}</div>`;
+    b.addEventListener("click", () => {
+      addMeetPoint({
+        name: d.place_name,
+        addr: d.road_address_name || d.address_name || "",
+        lat: +d.y, lng: +d.x, isMe: false,
+      });
+      meetResults.classList.add("hidden");
+      meetResults.innerHTML = "";
+      meetInput.value = "";
+    });
+    meetResults.appendChild(b);
+  });
 }
 
 // 한 지점 기준 카테고리 검색(1회)
@@ -2362,8 +2383,11 @@ function categorySearchOnce(code, loc, radius) {
 
 // 중간 좌표 주변 지하철역 — 반경을 넓혀가며 탐색, 역 이름 중복 제거 후 가까운 3곳
 async function findSubwayNear(lat, lng) {
+  const rest = useRestSearch();                  // iOS는 REST 경로(위 meetSearch와 같은 이유)
   for (const radius of [1000, 2000, 4000, 8000, 15000]) {
-    const data = await categorySearchOnce("SW8", new kakao.maps.LatLng(lat, lng), radius);
+    const data = rest
+      ? (await restCategorySearch("SW8", { lat, lng }, radius, 1)).list
+      : await categorySearchOnce("SW8", new kakao.maps.LatLng(lat, lng), radius);
     if (data.length) {
       const seen = new Set();
       return data
@@ -2388,7 +2412,7 @@ async function meetFind() {
 
   let stations = [];
   try {
-    await loadKakaoSdk(getKey());
+    if (!useRestSearch()) await loadKakaoSdk(getKey());
     stations = await findSubwayNear(mLat, mLng);
   } catch (err) { /* SDK/도메인 문제 → 중간 좌표로 대체 */ }
 

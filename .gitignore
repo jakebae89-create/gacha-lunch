@@ -4,6 +4,12 @@
 node_modules/
 www/
 
+# 심사용 화면 녹화 — 100MB가 넘어 GitHub push 자체가 거부된다
+*.MP4
+*.mp4
+*.mov
+*.MOV
+
 # 서명키 — 절대 커밋 금지 (앱의 평생 열쇠 + 비밀번호)
 *.jks
 *.keystore
