@@ -54,18 +54,17 @@ Not sure where to eat in Korea? Spin a capsule and let it pick a restaurant.
 
 ## 자세한 설명 (최대 4000자)
 
+**아래 블록은 줄바꿈까지 그대로 붙여넣는 용도다.** Play는 입력한 줄바꿈을 그대로
+렌더하므로 **문장 중간에서 줄을 끊으면 안 된다.** 편집할 때 에디터의 자동 줄바꿈에
+맞춰 손대지 말 것 — 한 문단은 반드시 한 줄로 유지한다.
+
 ```
 Where should I eat? Let one capsule decide.
 
-GachaBab pulls up real restaurants around you and drops them into a capsule
-machine. Turn the knob, pop the capsule open, and today's place is decided.
-The ten minutes you spend deciding become ten seconds.
+GachaBab pulls up real restaurants around you and drops them into a capsule machine. Turn the knob, pop the capsule open, and today's place is decided. The ten minutes you spend deciding become ten seconds.
 
 ■ For South Korea
-GachaBab runs on Kakao Map data, so it finds places while you are in Korea.
-Heading to Seoul, Busan or Jeju? Install it now and it's ready the moment you
-land. Already living here? It works in your own neighborhood every lunch break.
-Outside Korea there is nothing nearby to draw from, so save it for the trip.
+GachaBab runs on Kakao Map data, so it finds places while you are in Korea. Heading to Seoul, Busan or Jeju? Install it now and it's ready the moment you land. Already living here? It works in your own neighborhood every lunch break. Outside Korea there is nothing nearby to draw from, so save it for the trip.
 
 ■ How it works
 1. Pick a radius (500m to 5km) and a food type.
@@ -76,18 +75,14 @@ Outside Korea there is nothing nearby to draw from, so save it for the trip.
 · Real places nearby — restaurants pulled live from Kakao Map data
 · Radius — 500m / 1km / 2km / 3km / 5km
 · Categories — Korean, Chinese, Japanese, Western, Snacks, Cafe and more
-· Rarity grades — the rarer a kind of place is around you, the higher the
-  capsule grade. The one-of-a-kind spot outranks the fifth kimbap shop.
+· Rarity grades — the rarer a kind of place is around you, the higher the capsule grade. The one-of-a-kind spot outranks the fifth kimbap shop.
 · Kakao Map link and directions for every result
 · Favorites — keep the ones you liked and open them again anytime
 · Not this one — a place you exclude never comes back
-· No repeats — a restaurant you already drew won't show up again until you
-  have seen everything nearby
-· Meet in the middle — add everyone's location and GachaBab finds a subway
-  station in between, then draws a restaurant near it
+· No repeats — a restaurant you already drew won't show up again until you have seen everything nearby
+· Meet in the middle — add everyone's location and GachaBab finds a subway station in between, then draws a restaurant near it
 · History — every place you drew stacks up like a collection
 · Share — send today's pick straight to a friend
-· A retro trivia quiz to play while the machine loads
 
 ■ Who it's for
 · Anyone tired of hearing "anywhere is fine"
@@ -97,11 +92,9 @@ Outside Korea there is nothing nearby to draw from, so save it for the trip.
 
 ■ Good to know
 · Free, no sign-up required (includes a banner ad at the bottom)
-· Your location is used only to search for nearby restaurants and is never
-  stored on our servers
+· Your location is used only to search for nearby restaurants and is never stored on our servers
 · Available in English and Korean
-· Restaurant data comes from Kakao Map, so opening hours and closures may
-  differ from what you find in person
+· Restaurant data comes from Kakao Map, so opening hours and closures may differ from what you find in person
 · Restaurant search covers South Korea only
 
 Leave today's meal to the capsule.
@@ -146,15 +139,31 @@ Play는 언어별 방침 URL을 요구하지 않는다.
 등록정보만 영문으로 만들고 국가를 전 세계로 열면 안 된다.
 **한국에 올 일이 없는 사람에게는 작동하지 않는 앱**이라 설치당 별점 손해만 난다.
 
-방한 관광객 상위국 + 영어권 위주로 좁히는 것을 권한다.
+### 1차 (지금) — 영어가 통하는 나라만
 
 ```
-일본, 대만, 홍콩, 싱가포르, 태국, 베트남, 필리핀, 말레이시아,
-미국, 캐나다, 영국, 호주, 뉴질랜드
+미국, 캐나다, 영국, 호주, 뉴질랜드, 싱가포르, 필리핀, 말레이시아
 ```
+
+### 2차 (나중) — 현지어 등록정보를 만든 뒤
+
+```
+일본, 대만, 홍콩, 태국, 베트남
+```
+
+**방한 관광객 상위국인데도 2차로 미루는 이유**: Play는 사용자 기기 언어와 정확히
+맞는 등록정보가 없으면 **기본 언어(한국어)로 떨어진다.** 일본 사용자는 기기가
+일본어라 영문 등록정보를 못 보고 한국어 페이지를 본다. 방한 여행자를 노린다면서
+그들에게 한국어 페이지를 띄우는 꼴이라 이탈만 쌓인다. **일본어·중국어 등록정보를
+만든 뒤에 열어야 한다.**
 
 중국 본토는 Play 스토어가 없어 제외. 유럽 본토는 방한 수요 대비 영문 노출 경쟁이
-심해 후순위로 둔다.
+심해 후순위.
+
+### 영어 등록정보는 5개 변형에 모두 넣을 것
+같은 이유로 `en-US` 하나만 만들면 영국·호주 사용자가 한국어를 본다.
+`en-US` / `en-GB` / `en-CA` / `en-AU` / `en-SG` 다섯 곳에 같은 문구를 넣는다.
+(콘솔: 사용자 늘리기 → 앱 정보 → 번역 → 언어 관리)
 
 ## 스크린샷 (2026-08-16 촬영 완료)
 
