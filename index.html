@@ -222,6 +222,14 @@
     color: #ffd9a8; font-size: .62rem; font-weight: 800; letter-spacing: 1px;
     white-space: nowrap; line-height: 1; overflow: hidden;
   }
+  /* 동전은 이모지(🪙 U+1FA99)를 쓰면 안드로이드 10 이하에서 두부(□)로 깨진다.
+     Emoji 13.0이라 안드로이드 11부터 들어왔는데 minSdk는 23(안드로이드 6)이다.
+     폰트에 의존하지 않도록 테두리 원으로 직접 그린다. */
+  .coinslot::before {
+    content: ""; flex: none;
+    width: 8px; height: 8px;
+    border: 1.5px solid currentColor; border-radius: 50%;
+  }
 
   /* 손잡이 (돌리는 노브) */
   .knob {
@@ -669,7 +677,7 @@
       <div class="gacha-neck"></div>
       <div class="gacha-body">
         <div class="brand" data-i18n="brand">GACHA 밥</div>
-        <div class="coinslot">🪙 INSERT</div>
+        <div class="coinslot">INSERT</div>
         <div class="knob" id="knob"><span class="hub"></span></div>
         <div class="knob-label" data-i18n="knobLabel">PUSH ▸ 돌리기</div>
       </div>
