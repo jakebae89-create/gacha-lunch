@@ -2202,6 +2202,12 @@ $("#quizClose").addEventListener("click", closeQuiz);
 searchBtn.addEventListener("click", search);
 $("#researchBtn").addEventListener("click", search);
 $("#againBtn").addEventListener("click", resetMachine);
+// 결과 화면에서 빈 배경(카드 바깥)을 누르면 처음 화면으로 돌아가기
+result.addEventListener("click", (e) => {
+  if (state === STATE.RESULT && (e.target === result || e.target.classList.contains("backdrop"))) {
+    go(STATE.IDLE);
+  }
+});
 knob.addEventListener("click", crank);
 
 // ---- PWA: 서비스워커 등록 ----
