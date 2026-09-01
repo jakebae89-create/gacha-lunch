@@ -73,6 +73,17 @@
   }
   #langBtn:active { transform: scale(.92); }
 
+  /* 퀴즈 — 언어 토글 옆. 하단 버튼이 네 개까지 늘어나 위로 올렸다 */
+  #quizBtn {
+    position: fixed; top: calc(12px + env(safe-area-inset-top)); left: 72px; z-index: 55;
+    height: 40px; padding: 0 12px; border-radius: 12px; cursor: pointer;
+    font-family: inherit; font-size: .82rem; font-weight: 900; line-height: 1;
+    pointer-events: auto; background: #fff; color: var(--red-deep);
+    border: 2px solid rgba(232,80,63,.25); box-shadow: 0 3px 8px rgba(0,0,0,.1);
+    transition: transform .06s;
+  }
+  #quizBtn:active { transform: scale(.92); }
+
   /* 뽑은 기록(도감) 버튼 — 우측 끝 */
   #dexBtn {
     position: fixed; top: calc(12px + env(safe-area-inset-top)); right: 14px; z-index: 55;
@@ -367,6 +378,14 @@
     display: flex; flex-direction: column; align-items: center; gap: 11px;
     pointer-events: none;
   }
+  /* 주 액션은 전체 폭, 보조 두 개는 한 줄에 나란히 */
+  #ui #searchBtn { width: 100%; max-width: 320px; }
+  #ui #btnRow {
+    display: flex; gap: 8px; width: 100%; max-width: 320px; pointer-events: auto;
+  }
+  /* 영어 라벨은 좁은 화면에서 두 줄이 된다 — 잘리는 것보다 낫다 */
+  #ui #btnRow .btn { flex: 1; min-width: 0; padding: 11px 10px; font-size: .85rem; line-height: 1.25; }
+
   #privacyLink {
     display:block; margin-top:14px; font-size:.78rem; color:var(--muted);
     text-decoration:none; border-bottom:1px solid transparent; opacity:.75;
@@ -657,6 +676,40 @@
   .meet-alt a { display: inline-block; font-size: .82rem; font-weight: 700; color: #3d86ff; text-decoration: none; margin: 0 12px 4px 0; }
   .meet-actions { display: flex; gap: 10px; margin-top: 18px; }
   .meet-actions .btn { flex: 1; }
+
+  /* ===== 다른 동네에서 뽑기(임의 위치 지정) ===== */
+  #spotWrap { position: fixed; inset: 0; z-index: 86; display: flex; align-items: center; justify-content: center; padding: 20px; }
+  #spotWrap .backdrop { position: absolute; inset: 0; background: rgba(60,30,26,.42); backdrop-filter: blur(3px); }
+  #spotBox {
+    position: relative; width: 100%; max-width: 380px; max-height: 88vh; overflow-y: auto;
+    background: var(--cream); border: 3px solid #fff; border-radius: 22px;
+    padding: 20px 20px 18px; box-shadow: 0 16px 50px rgba(80,40,30,.4); animation: rise .3s ease;
+  }
+  #spotBox .meet-results { margin-bottom: 14px; }
+  .spot-recent { margin-bottom: 14px; }
+  .spot-recent .sr-head { font-size: .74rem; font-weight: 800; color: var(--muted); margin-bottom: 7px; }
+  .spot-recent .sr-list { display: flex; flex-wrap: wrap; gap: 6px; }
+  .spot-recent .sr-chip {
+    font-family: inherit; font-size: .8rem; font-weight: 800; color: var(--ink); cursor: pointer;
+    background: #fff; border: 2px solid rgba(0,0,0,.08); border-radius: 999px; padding: 7px 12px;
+    max-width: 100%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .spot-recent .sr-chip:active { transform: scale(.95); }
+  #spotGpsBtn { width: 100%; }
+
+  /* 현재 기준 위치 뱃지 — #ui가 pointer-events:none이라 auto를 따로 준다 */
+  #spotBadge {
+    pointer-events: auto; display: flex; align-items: center; gap: 7px; max-width: 92%;
+    background: #fff; border: 2px solid rgba(0,0,0,.08); border-radius: 999px;
+    padding: 6px 6px 6px 12px; box-shadow: 0 2px 8px rgba(80,40,30,.12);
+  }
+  #spotBadge .sb-ic { font-size: .82rem; flex: none; }
+  #spotBadge .sb-name { font-size: .82rem; font-weight: 800; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  #spotBadge .sb-clear {
+    flex: none; border: none; cursor: pointer; width: 22px; height: 22px; border-radius: 50%;
+    background: rgba(232,80,63,.1); color: var(--red-deep); font-weight: 900; font-size: .78rem; line-height: 1;
+  }
+  #spotBadge .sb-clear:active { transform: scale(.9); }
 </style>
 </head>
 <body>
@@ -665,6 +718,7 @@
   </div>
 
   <button id="langBtn" data-i18n-title="langToggle" title="English로 보기">EN</button>
+  <button id="quizBtn" data-i18n="quizBtn" data-i18n-title="quizBtnTitle" title="기다리면서 퀴즈 풀기">퀴즈</button>
   <button id="keyBtn" data-i18n-title="keyBtnTitle" title="카카오 API 키 설정">🔑</button>
   <button id="dexBtn" data-i18n-title="dexBtnTitle" title="뽑은 기록"><span>📖</span><b id="dexCount" class="hidden">0</b></button>
 
@@ -690,6 +744,11 @@
 
   <div id="ui">
     <div id="hint"></div>
+    <div id="spotBadge" class="hidden">
+      <span class="sb-ic">📍</span>
+      <span class="sb-name"></span>
+      <button class="sb-clear" id="spotClearBtn" data-i18n-title="spotClearTitle" title="내 위치로 되돌리기">✕</button>
+    </div>
     <div id="radiusBar" class="radius-bar">
       <button class="rchip" data-r="500">500m</button>
       <button class="rchip active" data-r="1000">1km</button>
@@ -697,9 +756,11 @@
       <button class="rchip" data-r="3000">3km</button>
       <button class="rchip" data-r="5000">5km</button>
     </div>
-    <button class="btn" id="searchBtn" data-i18n="searchBtn">주변 식당 검색</button>
-    <button class="btn ghost" id="meetBtn" data-i18n="meetBtn">약속 장소 정하기</button>
-    <button class="btn ghost" id="quizBtn" data-i18n="quizBtn">기다리면서 퀴즈 풀기</button>
+    <button class="btn" id="searchBtn" data-i18n="searchBtn">내 주변 식당 검색</button>
+    <div id="btnRow">
+      <button class="btn ghost" id="spotBtn" data-i18n="spotBtn">다른 동네에서 정하기</button>
+      <button class="btn ghost" id="meetBtn" data-i18n="meetBtn">중간 장소에서 정하기</button>
+    </div>
     <div id="loader" class="hidden">
       <div class="spinner"></div>
       <div style="font-size:.9rem;color:var(--muted)" data-i18n="loading">주변 식당을 캡슐에 담는 중…</div>
@@ -763,6 +824,32 @@
       <button class="btn" id="meetFindBtn" data-i18n="meetFindBtn" disabled>약속 장소 추천받기</button>
 
       <div id="meetOutcome" class="hidden"></div>
+    </div>
+  </div>
+
+  <!-- 다른 동네에서 뽑기(임의 위치 지정) -->
+  <div id="spotWrap" class="hidden">
+    <div class="backdrop"></div>
+    <div id="spotBox">
+      <button id="spotClose" class="meet-x" data-i18n-title="closeTitle" title="닫기">✕</button>
+      <div class="meet-title" data-i18n="spotTitle">🗺️ 어느 동네에서 뽑을까요?</div>
+      <p class="meet-desc" data-i18n-html="spotDesc">
+        지금 있는 곳 대신 <b>가고 싶은 동네</b>를 기준으로 뽑을 수 있어요.
+        동네·역·건물 이름으로 검색해 보세요.
+      </p>
+
+      <div class="meet-search">
+        <input id="spotInput" type="text" data-i18n-ph="spotPh" placeholder="동네·역 이름 검색 (예: 성수동, 광화문)" autocomplete="off" />
+        <button class="btn" id="spotSearchBtn" data-i18n="meetSearchBtn">검색</button>
+      </div>
+      <div id="spotResults" class="meet-results hidden"></div>
+
+      <div id="spotRecentWrap" class="spot-recent hidden">
+        <div class="sr-head" data-i18n="spotRecent">최근 지정한 곳</div>
+        <div id="spotRecentList" class="sr-list"></div>
+      </div>
+
+      <button class="btn ghost" id="spotGpsBtn" data-i18n="spotUseGps">📍 내 위치로 되돌리기</button>
     </div>
   </div>
 
@@ -871,9 +958,10 @@ const I18N = {
     keyBtnTitle: "카카오 API 키 설정",
     brand: "GACHA 밥",
     knobLabel: "PUSH ▸ 돌리기",
-    searchBtn: "주변 식당 검색",
-    meetBtn: "약속 장소 정하기",
-    quizBtn: "기다리면서 퀴즈 풀기",
+    searchBtn: "내 주변 식당 검색",
+    meetBtn: "중간 장소에서 정하기",
+    quizBtn: "퀴즈",
+    quizBtnTitle: "기다리면서 퀴즈 풀기",
     loading: "주변 식당을 캡슐에 담는 중…",
     closeTitle: "닫기",
     delTitle: "삭제",
@@ -915,6 +1003,16 @@ const I18N = {
     meetDistHead: "약속 장소까지 각자 거리",
     meetGacha: "이 근처 식당 가챠로 뽑기",
     meetMidPoint: "중간 지점",
+
+    spotBtn: "다른 동네에서 정하기",
+    spotTitle: "🗺️ 어느 동네에서 뽑을까요?",
+    spotDesc: "지금 있는 곳 대신 <b>가고 싶은 동네</b>를 기준으로 뽑을 수 있어요. " +
+              "동네·역·건물 이름으로 검색해 보세요.",
+    spotPh: "동네·역 이름 검색 (예: 성수동, 광화문)",
+    spotRecent: "최근 지정한 곳",
+    spotUseGps: "📍 내 위치로 되돌리기",
+    spotClearTitle: "내 위치로 되돌리기",
+    searchHereBtn: "이 동네 식당 검색",
 
     menuTitle: "📋 대표 메뉴",
     routeLink: "길찾기",
@@ -980,9 +1078,10 @@ const I18N = {
     keyBtnTitle: "Kakao API key settings",
     brand: "GACHA BAB",
     knobLabel: "PUSH ▸ TURN",
-    searchBtn: "Find restaurants nearby",
-    meetBtn: "Pick a place to meet",
-    quizBtn: "Play a quiz while you wait",
+    searchBtn: "Find restaurants near me",
+    meetBtn: "Meet in the middle",
+    quizBtn: "Quiz",
+    quizBtnTitle: "Play a quiz while you wait",
     loading: "Loading nearby restaurants…",
     closeTitle: "Close",
     delTitle: "Remove",
@@ -1024,6 +1123,16 @@ const I18N = {
     meetDistHead: "Distance for each person",
     meetGacha: "Draw a restaurant near here",
     meetMidPoint: "the midpoint",
+
+    spotBtn: "Pick another area",
+    spotTitle: "🗺️ Which area?",
+    spotDesc: "Draw from the <b>area you want to eat in</b> instead of where you are now. " +
+              "Search by neighborhood, station or building name.",
+    spotPh: "Search an area (e.g. Hongdae, Gangnam Station)",
+    spotRecent: "Recent areas",
+    spotUseGps: "📍 Back to my location",
+    spotClearTitle: "Back to my location",
+    searchHereBtn: "Search this area",
 
     menuTitle: "📋 Popular menu",
     routeLink: "Directions",
@@ -1106,6 +1215,8 @@ function applyI18n() {
   // 퀴즈는 한국어 콘텐츠라 영어 모드에서는 숨긴다
   const qb = document.getElementById("quizBtn");
   if (qb) qb.classList.toggle("hidden", LANG !== "ko");
+  // 검색 버튼 문구는 기준 위치에 따라 달라진다(data-i18n으로 덮인 뒤에 다시 맞춘다)
+  syncSpotUI();
 }
 
 function setLang(next) {
@@ -1127,6 +1238,7 @@ let cycleReset = false; // 이번 추첨이 기록 초기화 후 첫 추첨인�
 let POOL = DUMMY_POOL;  // 추첨 풀 (더미 또는 카카오 실데이터)
 let usingReal = false;
 let radiusM = 1000;     // 검색 반경(m) — 반경 칩으로 변경
+let SPOT = null;        // 임의로 지정한 기준 위치 { name, addr, lat, lng } · null이면 GPS(내 위치)
 
 const $ = s => document.querySelector(s);
 const machine  = $("#machine");
@@ -1136,6 +1248,7 @@ const tray     = $("#tray");
 const hint     = $("#hint");
 const searchBtn= $("#searchBtn");
 const quizBtn  = $("#quizBtn");
+const btnRow   = $("#btnRow");
 const loader   = $("#loader");
 const result   = $("#resultWrap");
 const flash    = $("#flash");
@@ -1206,8 +1319,7 @@ function setHint(t) { hint.textContent = t; }
 function go(next) {
   state = next;
   searchBtn.classList.add("hidden");
-  meetBtn.classList.add("hidden");
-  quizBtn.classList.add("hidden");
+  btnRow.classList.add("hidden");
   radiusBar.classList.add("hidden");
   loader.classList.add("hidden");
   result.classList.add("hidden");
@@ -1216,16 +1328,14 @@ function go(next) {
   if (next === STATE.IDLE) {
     clearMachine();
     searchBtn.classList.remove("hidden");
-    meetBtn.classList.remove("hidden");
-    showQuizBtn();
+    btnRow.classList.remove("hidden");
     radiusBar.classList.remove("hidden");
     setHint("");
   } else if (next === STATE.SEARCHING) {
     loader.classList.remove("hidden");
     setHint("");
   } else if (next === STATE.READY) {
-    meetBtn.classList.remove("hidden");   // 게임 화면에서도 중간지점 찾기 접근 가능하게 노출
-    showQuizBtn();                        // 게임 화면에서도 하단에 퀴즈 버튼 노출(영어 모드는 숨김)
+    btnRow.classList.remove("hidden");    // 게임 화면에서도 동네 바꾸기·약속 장소 접근 가능하게 노출
     machine.classList.add("ready");
     setHint(t("hintCrank"));
   } else if (next === STATE.CAPSULE) {
@@ -1233,10 +1343,9 @@ function go(next) {
   } else if (next === STATE.RESULT) {
     result.classList.remove("hidden");
   }
-}
 
-// 퀴즈 콘텐츠가 한국어라 영어 모드에서는 버튼을 내린다
-function showQuizBtn() { quizBtn.classList.toggle("hidden", LANG !== "ko"); }
+  syncSpotUI();   // 지정 위치 뱃지·버튼은 상태에 따라 스스로 켜고 끈다
+}
 
 function clearMachine() {
   dome.innerHTML = "";
@@ -1812,13 +1921,23 @@ async function search() {
 
   go(STATE.SEARCHING);
   try {
-    const coords = await getPosition();
-    // 해외에서는 카카오가 결과를 못 주므로, 빈 화면 대신 이유를 알려준다
-    if (!inKorea(coords.latitude, coords.longitude)) geoNotice.classList.remove("hidden");
+    let coords;
+    if (SPOT) {
+      // 지정한 동네가 있으면 GPS를 부르지 않는다(위치 권한도 필요 없다)
+      coords = { latitude: SPOT.lat, longitude: SPOT.lng };
+    } else {
+      coords = await getPosition();
+      // 해외에서는 카카오가 결과를 못 주므로, 빈 화면 대신 이유를 알려준다
+      if (!inKorea(coords.latitude, coords.longitude)) geoNotice.classList.remove("hidden");
+    }
     const list = await fetchKakao(coords, key, radiusM);
     if (!list.length) throw new Error("empty");
     POOL = list; usingReal = true;
     fillDome(); go(STATE.READY);
+    if (SPOT) {
+      setHint(t("hintFilled")(SPOT.name));
+      setTimeout(() => { if (state === STATE.READY) setHint(t("hintCrank")); }, 2600);
+    }
   } catch (err) {
     POOL = DUMMY_POOL; usingReal = false;
     fillDome(); go(STATE.READY);
@@ -2483,13 +2602,15 @@ function renderMeetOutcome(mLat, mLng, stations) {
 // 추천 지점 주변 식당을 가챠 머신에 채우고 대기 (기존 검색 흐름 재사용)
 async function gachaAround(lat, lng, placeName) {
   closeMeet();
+  // 기준 위치로 기억해 둔다 — 재검색·반경 변경을 눌러도 내 위치로 되돌아가지 않게
+  SPOT = { name: placeName, addr: "", lat, lng };
   go(STATE.SEARCHING);
   try {
     const list = await fetchKakao({ latitude: lat, longitude: lng }, getKey(), radiusM);
     if (!list.length) throw new Error("empty");
     POOL = list; usingReal = true;
     fillDome(); go(STATE.READY);
-    setHint(`${placeName} 근처 식당으로 캡슐을 채웠어요!`);
+    setHint(t("hintFilled")(placeName));
     setTimeout(() => { if (state === STATE.READY) setHint(t("hintCrank")); }, 2600);
   } catch (err) {
     POOL = DUMMY_POOL; usingReal = false;
@@ -2498,6 +2619,123 @@ async function gachaAround(lat, lng, placeName) {
     setTimeout(() => { if (state === STATE.READY) setHint(t("hintCrank")); }, 2800);
   }
 }
+
+/* ============================================================
+   다른 동네에서 뽑기 — 임의 위치를 기준으로 지정
+   GPS 대신 SPOT을 검색 기준으로 쓴다. SPOT이 null이면 기존대로 내 위치.
+   ============================================================ */
+const SPOT_LS = "gachaSpots";      // 최근 지정한 동네
+const SPOT_MAX = 6;
+let spots_ = loadStore(SPOT_LS);
+
+const spotWrap    = $("#spotWrap");
+const spotBtn     = $("#spotBtn");
+const spotBadge   = $("#spotBadge");
+const spotInput   = $("#spotInput");
+const spotResults = $("#spotResults");
+
+// 뱃지·버튼·검색 버튼 문구를 현재 상태에 맞춘다
+function syncSpotUI() {
+  const canShow = (state === STATE.IDLE || state === STATE.READY);
+  spotBadge.querySelector(".sb-name").textContent = SPOT ? SPOT.name : "";
+  spotBadge.classList.toggle("hidden", !(SPOT && canShow));
+  spotBtn.textContent = t("spotBtn");
+  searchBtn.textContent = SPOT ? t("searchHereBtn") : t("searchBtn");
+}
+
+function spotKey(s) { return s.name + "|" + (s.addr || ""); }
+
+function rememberSpot(s) {
+  spots_ = [s, ...spots_.filter(o => spotKey(o) !== spotKey(s))].slice(0, SPOT_MAX);
+  saveStore(SPOT_LS, spots_);
+}
+
+function setSpot(s) {
+  SPOT = s;
+  rememberSpot(s);
+  closeSpot();
+  syncSpotUI();
+  search();                                     // 지정 즉시 그 동네로 다시 채운다
+}
+
+function clearSpot() {
+  SPOT = null;
+  syncSpotUI();
+  buzz(10);
+}
+
+function openSpot() {
+  spotResults.classList.add("hidden");
+  spotResults.innerHTML = "";
+  spotInput.value = "";
+  renderSpotRecent();
+  spotWrap.classList.remove("hidden");
+  setTimeout(() => spotInput.focus(), 60);
+}
+function closeSpot() { spotWrap.classList.add("hidden"); }
+
+function renderSpotRecent() {
+  const wrap = $("#spotRecentWrap"), list = $("#spotRecentList");
+  wrap.classList.toggle("hidden", !spots_.length);
+  list.innerHTML = "";
+  spots_.forEach(s => {
+    const b = document.createElement("button");
+    b.className = "sr-chip";
+    b.textContent = s.name;
+    b.addEventListener("click", () => setSpot(s));
+    list.appendChild(b);
+  });
+}
+
+// 장소 검색 — 약속 장소 쪽과 같은 경로(iOS는 JS SDK 장소검색이 막혀 REST로 간다)
+async function spotSearch() {
+  const q = spotInput.value.trim();
+  if (!q) { spotInput.focus(); return; }
+  spotResults.classList.remove("hidden");
+  spotResults.innerHTML = `<div class="meet-loading">${escapeHtml(t("meetSearching"))}</div>`;
+  try {
+    if (useRestSearch()) {
+      renderSpotResults(await restKeywordSearch(q));
+      return;
+    }
+    await loadKakaoSdk(getKey());
+    const ps = new kakao.maps.services.Places();
+    ps.keywordSearch(q, (data, status) => {
+      renderSpotResults(status === kakao.maps.services.Status.OK ? data : []);
+    });
+  } catch (err) {
+    spotResults.innerHTML = `<div class="mr-empty">${escapeHtml(t("meetSearchFail"))}</div>`;
+  }
+}
+
+function renderSpotResults(list) {
+  if (!list.length) {
+    spotResults.innerHTML = `<div class="mr-empty">${escapeHtml(t("meetNoResult"))}</div>`;
+    return;
+  }
+  spotResults.innerHTML = "";
+  list.slice(0, 6).forEach(d => {
+    const b = document.createElement("button");
+    b.className = "mr";
+    b.innerHTML =
+      `<div class="mr-name">${escapeHtml(d.place_name)}</div>` +
+      `<div class="mr-addr">${escapeHtml(d.road_address_name || d.address_name || "")}</div>`;
+    b.addEventListener("click", () => setSpot({
+      name: d.place_name,
+      addr: d.road_address_name || d.address_name || "",
+      lat: +d.y, lng: +d.x,
+    }));
+    spotResults.appendChild(b);
+  });
+}
+
+spotBtn.addEventListener("click", openSpot);
+$("#spotClose").addEventListener("click", closeSpot);
+spotWrap.querySelector(".backdrop").addEventListener("click", closeSpot);
+$("#spotSearchBtn").addEventListener("click", spotSearch);
+spotInput.addEventListener("keydown", e => { if (e.key === "Enter") spotSearch(); });
+$("#spotClearBtn").addEventListener("click", clearSpot);
+$("#spotGpsBtn").addEventListener("click", () => { closeSpot(); clearSpot(); search(); });
 
 // ---- 중간지점 이벤트 바인딩 ----
 meetBtn.addEventListener("click", openMeet);
