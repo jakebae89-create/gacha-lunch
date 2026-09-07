@@ -470,11 +470,10 @@
   #result ul.menu li:last-child { border-bottom: none; }
   #result ul.menu li .mn { color: var(--ink); font-weight: 700; font-size: .95rem; }
   #result ul.menu li .mp { color: var(--red-deep); font-weight: 900; white-space: nowrap; font-size: .95rem; }
-  /* 공유 / 여긴 싫어 */
-  #result .act-row { margin-top: 14px; display: flex; gap: 8px; justify-content: center; }
+  /* 맛집 저장 / 공유하기 */
+  #result .act-row { margin-top: 8px; display: flex; gap: 8px; justify-content: center; }
   #result .actbtn {
-    flex: 1; font-family: inherit; font-size: .82rem; font-weight: 800; cursor: pointer;
-    padding: 9px 10px; border-radius: 12px; white-space: nowrap;
+    font-family: inherit; cursor: pointer;
     background: #fff; color: var(--ink); border: 2px solid rgba(0,0,0,.08);
     box-shadow: 0 2px 5px rgba(0,0,0,.07); transition: transform .06s;
   }
@@ -483,7 +482,7 @@
   /* 저장된 상태 — 눌러서 해제할 수 있다는 걸 색으로 보여준다 */
   #result .actbtn.saved { background: #fff4e0; color: #b8770a; border-color: rgba(240,169,27,.45); }
 
-  /* 여긴 싫어 — 자주 쓰는 동작이 아니라 조용한 텍스트 링크로 둔다 */
+  /* 뽑기에서 제외 — 자주 쓰는 동작이 아니라 조용한 텍스트 링크로 둔다 */
   #result .quietbtn {
     display: block; margin: 10px auto 0; font-family: inherit; cursor: pointer;
     background: none; border: none; padding: 4px 8px;
@@ -497,16 +496,29 @@
   #result .place-extra { margin-top: 16px; display: flex; flex-wrap: nowrap; gap: 8px; justify-content: center; }
   #result .place-extra.hidden { display: none; }
   #result .placelink {
-    flex: 1; min-width: 0; text-align: center; white-space: nowrap;
-    font-size: .85rem; font-weight: 900; text-decoration: none;
-    color: #fff; background: linear-gradient(180deg, #6fb0ff, #3d86ff); padding: 10px 8px; border-radius: 12px;
+    text-align: center; text-decoration: none;
+    color: #fff; background: linear-gradient(180deg, #6fb0ff, #3d86ff);
   }
   #result .routelink { background: linear-gradient(180deg, #5ed16a, #35b04a); }
   #result .routelink.hidden { display: none; }
-  #result .row { display: flex; gap: 10px; margin-top: 18px; justify-content: center; flex-wrap: wrap; }
-  /* 글자는 항상 한 줄로. 폭이 모자라면 버튼끼리 세로로 쌓인다(320px급 기기) */
-  #result .row .btn { white-space: nowrap; padding-left: 18px; padding-right: 18px; }
-  #result .row .btn { flex: 1; }
+  #result .row { display: flex; gap: 8px; margin-top: 8px; justify-content: center; flex-wrap: nowrap; }
+
+  /* 결과 화면의 버튼 6개는 크기를 하나로 맞춘다 — 구분은 색으로만 한다.
+     크기를 여기서 한 번에 잡으므로 개별 규칙에 padding·font-size를 다시 쓰지 말 것 */
+  #result .placelink,
+  #result .row .btn,
+  #result .actbtn {
+    flex: 1 1 0; min-width: 0; box-sizing: border-box;
+    display: flex; align-items: center; justify-content: center;
+    min-height: 42px; padding: 6px 8px; border-radius: 12px;
+    font-size: .82rem; font-weight: 900; line-height: 1.25; white-space: nowrap;
+  }
+  /* 320px급 기기 + 영문에서만 글자가 버튼 모서리에 닿는다. 여섯 개를 같이 줄여 크기는 그대로 맞춘다 */
+  @media (max-width: 360px) {
+    #result .placelink,
+    #result .row .btn,
+    #result .actbtn { font-size: .74rem; padding: 6px 4px; }
+  }
 
   /* ===== API 키 모달 ===== */
   #keyWrap { position: fixed; inset: 0; z-index: 80; display: flex; align-items: center; justify-content: center; padding: 24px; }
@@ -732,7 +744,7 @@
       <div class="gacha-head" id="dome"></div>
       <div class="gacha-neck"></div>
       <div class="gacha-body">
-        <div class="brand" data-i18n="brand">GACHA 밥</div>
+        <div class="brand" data-i18n="brand">가챠밥</div>
         <div class="coinslot">INSERT</div>
         <div class="knob" id="knob"><span class="hub"></span></div>
         <div class="knob-label" data-i18n="knobLabel">PUSH ▸ 돌리기</div>
@@ -889,7 +901,7 @@
       <ul class="menu"></ul>
       <div class="place-extra hidden">
         <a class="placelink routelink hidden" target="_blank" rel="noopener" data-i18n="routeLink">길찾기</a>
-        <a class="placelink maplink" target="_blank" rel="noopener" data-i18n="mapLink">카카오맵 보기</a>
+        <a class="placelink maplink" target="_blank" rel="noopener" data-i18n="mapLink">식당 정보 확인</a>
       </div>
       <div class="row">
         <button class="btn" id="againBtn" data-i18n="againBtn">한 번 더 뽑기</button>
@@ -899,7 +911,7 @@
         <button class="actbtn" id="favBtn" data-i18n="favBtn">맛집으로 저장</button>
         <button class="actbtn" id="shareBtn" data-i18n="shareBtn">공유하기</button>
       </div>
-      <button class="quietbtn" id="blockBtn" data-i18n="blockBtn">여긴 싫어</button>
+      <button class="quietbtn" id="blockBtn" data-i18n="blockBtn">이곳 뽑기에서 제외</button>
       <div id="radiusBarResult" class="radius-bar">
           <button class="rchip" data-r="500">500m</button>
         <button class="rchip" data-r="1000">1km</button>
@@ -959,7 +971,7 @@ const I18N = {
     appName: "가챠밥",
     langToggle: "English로 보기",
     keyBtnTitle: "카카오 API 키 설정",
-    brand: "GACHA 밥",
+    brand: "가챠밥",
     knobLabel: "PUSH ▸ 돌리기",
     searchBtn: "내 주변 식당 검색",
     meetBtn: "중간 장소에서 정하기",
@@ -1019,7 +1031,8 @@ const I18N = {
 
     menuTitle: "📋 대표 메뉴",
     routeLink: "길찾기",
-    mapLink: "카카오맵 보기",
+    mapLink: "식당 정보 확인",
+    stationLink: "카카오맵에서 보기",
     againBtn: "한 번 더 뽑기",
     researchBtn: "식당 재검색",
     free: "무료",
@@ -1037,7 +1050,7 @@ const I18N = {
     shareCopied: "✅ 복사했어요",
     shareFail: "⚠️ 공유 실패",
     shareHead: name => `🍚 가챠밥이 뽑아준 오늘 점심: ${name}`,
-    blockBtn: "여긴 싫어",
+    blockBtn: "이곳 뽑기에서 제외",
     blockDone: "✅ 제외했어요",
     favBtn: "맛집으로 저장",
     favSaved: "⭐ 저장됨",
@@ -1058,7 +1071,7 @@ const I18N = {
     dexClearBlock: "제외 목록 비우기",
     dexClearConfirm: "정말 지울까요?",
     dexEmptyHist: "아직 뽑은 곳이 없어요.<br>손잡이를 돌려 첫 캡슐을 뽑아보세요!",
-    dexEmptyBlock: "제외한 곳이 없어요.<br>결과 화면에서 '여긴 싫어'를 누르면 여기에 쌓여요.",
+    dexEmptyBlock: "제외한 곳이 없어요.<br>결과 화면에서 '이곳 뽑기에서 제외'를 누르면 여기에 쌓여요.",
     dexAllBlocked: "🙅 뽑을 곳이 없어요 — 제외 목록을 확인해 주세요",
 
     fbDenied: "📍 위치 권한이 거부돼 더미 데이터로 진행합니다",
@@ -1139,7 +1152,8 @@ const I18N = {
 
     menuTitle: "📋 Popular menu",
     routeLink: "Directions",
-    mapLink: "Kakao Map",
+    mapLink: "Restaurant info",
+    stationLink: "View on Kakao Map",
     againBtn: "Draw again",
     researchBtn: "Search again",
     free: "Free",
@@ -1159,7 +1173,7 @@ const I18N = {
     shareCopied: "✅ Copied",
     shareFail: "⚠️ Share failed",
     shareHead: name => `🍚 GachaBab picked today's lunch: ${name}`,
-    blockBtn: "Not this one",
+    blockBtn: "Exclude this place",
     blockDone: "✅ Excluded",
     favBtn: "Save as favorite",
     favSaved: "⭐ Saved",
@@ -1180,7 +1194,7 @@ const I18N = {
     dexClearBlock: "Clear excluded list",
     dexClearConfirm: "Clear it all?",
     dexEmptyHist: "Nothing drawn yet.<br>Turn the knob for your first capsule!",
-    dexEmptyBlock: "No exclusions yet.<br>Tap \"Not this one\" on a result to add it here.",
+    dexEmptyBlock: "No exclusions yet.<br>Tap \"Exclude this place\" on a result to add it here.",
     dexAllBlocked: "🙅 Nothing left to draw — check your excluded list",
 
     fbDenied: "📍 Location denied — showing demo data",
@@ -2160,7 +2174,7 @@ keyInput.addEventListener("keydown", e => { if (e.key === "Enter") $("#keySave")
 keyWrap.querySelector(".backdrop").addEventListener("click", closeKeyModal);
 
 /* ============================================================
-   공유하기 · 여긴 싫어 · 도감 화면
+   공유하기 · 뽑기에서 제외 · 도감 화면
    ============================================================ */
 async function shareWinner() {
   if (!winner) return;
@@ -2564,7 +2578,7 @@ function renderMeetOutcome(mLat, mLng, stations) {
         `<div class="mr-pick">${escapeHtml(t("meetRecPick"))}</div>` +
         `<div class="mr-station">🚇 ${escapeHtml(best.name)}</div>` +
         `<div class="mr-meta">${escapeHtml(t("meetRecMeta")(fmtDist(best.dist)))}</div>` +
-        (best.url ? `<a class="placelink" href="${best.url}" target="_blank" rel="noopener">${escapeHtml(t("mapLink"))}</a>` : "") +
+        (best.url ? `<a class="placelink" href="${best.url}" target="_blank" rel="noopener">${escapeHtml(t("stationLink"))}</a>` : "") +
       `</div>`;
 
     html += `<ul class="meet-dists"><div class="md-head">${escapeHtml(t("meetDistHead"))}</div>`;
