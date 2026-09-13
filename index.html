@@ -25,6 +25,10 @@
     --ink: #3a2b2b;
     --muted: #9a8a86;
     --glass: rgba(206,228,255,.30);
+    /* AdMob 배너 실측 높이. 안드로이드에서 bannerAdSizeChanged 때 채워진다.
+       배너 위에 버튼이 붙어 있으면 AdMob 배너 가이드라인 위반(의도치 않은 클릭)이라
+       화면 하단에 고정된 요소는 전부 이 값만큼 띄워야 한다. */
+    --ad-h: 0px;
   }
   * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
   html, body { margin: 0; height: 100%; overflow: hidden; }
@@ -104,7 +108,7 @@
 
   /* 한국 밖에서 열었을 때 안내 배너 */
   #geoNotice {
-    position: fixed; left: 12px; right: 12px; bottom: calc(14px + env(safe-area-inset-bottom));
+    position: fixed; left: 12px; right: 12px; bottom: calc(14px + var(--ad-h) + env(safe-area-inset-bottom));
     z-index: 90; background: #fff; border-radius: 16px; padding: 16px 18px;
     box-shadow: 0 10px 30px rgba(0,0,0,.18); border: 2px solid rgba(232,80,63,.2);
     text-align: center; max-width: 460px; margin: 0 auto;
@@ -139,8 +143,10 @@
   /* ===== 무대 (가챠 머신 중앙 배치) ===== */
   #stage {
     position: fixed; inset: 0; display: flex; align-items: center; justify-content: center;
-    padding-bottom: 40px;
+    padding-bottom: calc(40px + var(--ad-h));
   }
+  /* 기록 스트립이 떠 있으면 그만큼 머신을 위로 밀어 겹치지 않게 한다 */
+  body.has-recent #stage { padding-bottom: calc(225px + var(--ad-h)); }
 
   /* 머신 바닥 그림자 */
   #machine::before {
@@ -374,7 +380,7 @@
   /* ===== 하단 UI ===== */
   #ui {
     position: fixed; left: 0; right: 0; bottom: 0; z-index: 50;
-    padding: 14px 18px calc(18px + env(safe-area-inset-bottom));
+    padding: 14px 18px calc(18px + var(--ad-h) + env(safe-area-inset-bottom));
     display: flex; flex-direction: column; align-items: center; gap: 11px;
     pointer-events: none;
   }
@@ -385,6 +391,43 @@
   }
   /* 영어 라벨은 좁은 화면에서 두 줄이 된다 — 잘리는 것보다 낫다 */
   #ui #btnRow .btn { flex: 1; min-width: 0; padding: 11px 10px; font-size: .85rem; line-height: 1.25; }
+
+  /* ===== 첫 화면 기록 스트립 =====
+     저장한 맛집과 최근 뽑은 곳을 첫 화면에 상시로 깔아둔다.
+     모달 안에만 있던 내용을 꺼내온 것이라 새 데이터는 없다. */
+  #recent { width: 100%; max-width: 320px; pointer-events: auto; }
+  #recent.hidden { display: none; }
+  #recent .rc-head {
+    display: flex; align-items: baseline; justify-content: space-between;
+    padding: 0 3px 5px; font-size: .7rem; font-weight: 800; color: var(--muted);
+  }
+  #recent .rc-head button {
+    font-family: inherit; font-size: .7rem; font-weight: 800; color: var(--red-deep);
+    background: none; border: 0; padding: 0; cursor: pointer;
+  }
+  #recentList {
+    display: flex; gap: 6px; overflow-x: auto; overscroll-behavior-x: contain;
+    scrollbar-width: none; -ms-overflow-style: none; padding-bottom: 2px;
+  }
+  #recentList::-webkit-scrollbar { display: none; }
+  .rc-item {
+    flex: none; max-width: 168px; display: flex; align-items: center; gap: 7px;
+    padding: 7px 11px; border-radius: 13px;
+    border: 2px solid rgba(255,255,255,.8); background: none; cursor: pointer;
+  }
+  .rc-item:active { transform: scale(.96); }
+  .rc-item.ssr { border-color: rgba(240,169,27,.6); }
+  .rc-item .rc-ic { flex: none; font-size: 1rem; line-height: 1; }
+  .rc-item .rc-ic svg { width: 17px; height: 17px; vertical-align: middle; }
+  .rc-item .rc-body { display: flex; flex-direction: column; min-width: 0; text-align: left; }
+  .rc-item .rc-name {
+    font-size: .78rem; font-weight: 800; color: var(--ink);
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .rc-item .rc-sub {
+    margin-top: 1px; font-size: .63rem; font-weight: 700; color: var(--muted);
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
 
   /* 방침 링크 — 첫 화면을 어지럽히지 않게 도감 모달 하단에 둔다.
      정책상 앱 안에 접근 경로가 있어야 하므로 지우면 안 되고, 자리만 옮긴 것이다. */
@@ -447,7 +490,8 @@
   /* ===== 결과 모달 ===== */
   #resultWrap {
     position: fixed; inset: 0; z-index: 70;
-    display: flex; align-items: center; justify-content: center; padding: 24px;
+    display: flex; align-items: center; justify-content: center;
+    padding: 24px 24px calc(24px + var(--ad-h));
   }
   #resultWrap .backdrop { position: absolute; inset: 0; background: rgba(60,30,26,.4); backdrop-filter: blur(3px); }
   #result {
@@ -521,7 +565,7 @@
   }
 
   /* ===== API 키 모달 ===== */
-  #keyWrap { position: fixed; inset: 0; z-index: 80; display: flex; align-items: center; justify-content: center; padding: 24px; }
+  #keyWrap { position: fixed; inset: 0; z-index: 80; display: flex; align-items: center; justify-content: center; padding: 24px 24px calc(24px + var(--ad-h)); }
   #keyWrap .backdrop { position: absolute; inset: 0; background: rgba(60,30,26,.42); backdrop-filter: blur(3px); }
   #keyBox {
     position: relative; width: 100%; max-width: 360px; background: var(--cream);
@@ -557,7 +601,7 @@
   #quizClose:active { transform: scale(.95); }
 
   /* ===== 뽑은 기록(도감) / 제외 목록 ===== */
-  #dexWrap { position: fixed; inset: 0; z-index: 88; display: flex; align-items: center; justify-content: center; padding: 20px; }
+  #dexWrap { position: fixed; inset: 0; z-index: 88; display: flex; align-items: center; justify-content: center; padding: 20px 20px calc(20px + var(--ad-h)); }
   #dexWrap .backdrop { position: absolute; inset: 0; background: rgba(60,30,26,.42); backdrop-filter: blur(3px); }
   #dexBox {
     position: relative; width: 100%; max-width: 380px; max-height: 88vh; overflow-y: auto;
@@ -615,7 +659,7 @@
   #dexClear.hidden { display: none; }
 
   /* ===== 중간지점 약속 장소 오버레이 ===== */
-  #meetWrap { position: fixed; inset: 0; z-index: 85; display: flex; align-items: center; justify-content: center; padding: 20px; }
+  #meetWrap { position: fixed; inset: 0; z-index: 85; display: flex; align-items: center; justify-content: center; padding: 20px 20px calc(20px + var(--ad-h)); }
   #meetWrap .backdrop { position: absolute; inset: 0; background: rgba(60,30,26,.42); backdrop-filter: blur(3px); }
   #meetBox {
     position: relative; width: 100%; max-width: 380px; max-height: 88vh; overflow-y: auto;
@@ -692,7 +736,7 @@
   .meet-actions .btn { flex: 1; }
 
   /* ===== 다른 동네에서 뽑기(임의 위치 지정) ===== */
-  #spotWrap { position: fixed; inset: 0; z-index: 86; display: flex; align-items: center; justify-content: center; padding: 20px; }
+  #spotWrap { position: fixed; inset: 0; z-index: 86; display: flex; align-items: center; justify-content: center; padding: 20px 20px calc(20px + var(--ad-h)); }
   #spotWrap .backdrop { position: absolute; inset: 0; background: rgba(60,30,26,.42); backdrop-filter: blur(3px); }
   #spotBox {
     position: relative; width: 100%; max-width: 380px; max-height: 88vh; overflow-y: auto;
@@ -762,6 +806,13 @@
       <span class="sb-ic">📍</span>
       <span class="sb-name"></span>
       <button class="sb-clear" id="spotClearBtn" data-i18n-title="spotClearTitle" title="내 위치로 되돌리기">✕</button>
+    </div>
+    <div id="recent" class="hidden">
+      <div class="rc-head">
+        <span data-i18n="recentTitle">내 맛집 · 뽑은 곳</span>
+        <button id="recentMore" data-i18n="recentMore">전체 보기</button>
+      </div>
+      <div id="recentList"></div>
     </div>
     <div id="radiusBar" class="radius-bar">
       <button class="rchip" data-r="500">500m</button>
@@ -1055,6 +1106,10 @@ const I18N = {
     favBtn: "맛집으로 저장",
     favSaved: "⭐ 저장됨",
 
+    recentTitle: "내 맛집 · 뽑은 곳",
+    recentMore: "전체 보기",
+    recentSaved: "저장함",
+
     dexBtnTitle: "내 맛집·뽑은 기록",
     dexTitle: "📖 내 기록",
     dexTabFav: "맛집",
@@ -1178,6 +1233,10 @@ const I18N = {
     favBtn: "Save as favorite",
     favSaved: "⭐ Saved",
 
+    recentTitle: "Saved & recent",
+    recentMore: "See all",
+    recentSaved: "Saved",
+
     dexBtnTitle: "Favorites and history",
     dexTitle: "📖 My places",
     dexTabFav: "Favorites",
@@ -1244,6 +1303,7 @@ function setLang(next) {
   const dw = $("#dexWrap");
   if (dw && !dw.classList.contains("hidden")) renderDex();   // 열려 있으면 목록도 새 언어로
   if (state === STATE.READY) setHint(t("hintCrank"));
+  renderRecent();
 }
 
 const STATE = { IDLE:"idle", SEARCHING:"searching", READY:"ready", CRANKING:"cranking", CAPSULE:"capsule", OPENING:"opening", RESULT:"result" };
@@ -1747,7 +1807,7 @@ function isFav(key) { return favs_.some(f => f.key === key); }
 function toggleFav(r) {
   const key = restoKey(r);
   if (!key) return false;
-  if (isFav(key)) { favs_ = favs_.filter(f => f.key !== key); saveStore(FAV_LS, favs_); return false; }
+  if (isFav(key)) { favs_ = favs_.filter(f => f.key !== key); saveStore(FAV_LS, favs_); renderRecent(); return false; }
   favs_.unshift({
     key, ts: Date.now(),
     name: r.name, ic: r.ic, cat: r.cat,
@@ -1756,9 +1816,10 @@ function toggleFav(r) {
     lat: Number.isFinite(r.lat) ? r.lat : null, lng: Number.isFinite(r.lng) ? r.lng : null,
   });
   saveStore(FAV_LS, favs_);
+  renderRecent();
   return true;
 }
-function unfav(key) { favs_ = favs_.filter(f => f.key !== key); saveStore(FAV_LS, favs_); }
+function unfav(key) { favs_ = favs_.filter(f => f.key !== key); saveStore(FAV_LS, favs_); renderRecent(); }
 
 function addHistory(r) {
   const key = restoKey(r);
@@ -1775,6 +1836,7 @@ function addHistory(r) {
   if (history_.length > HIST_MAX) history_.length = HIST_MAX;
   saveStore(HIST_LS, history_);
   updateDexCount();
+  renderRecent();
 }
 
 function blockPlace(r) {
@@ -2305,8 +2367,66 @@ function renderDex() {
     }
     list.appendChild(el);
   });
+
+  renderRecent();   // 도감에서 지우거나 저장 해제한 결과를 첫 화면에도 반영
 }
 
+/* 첫 화면 기록 스트립 — 저장한 맛집을 먼저, 모자라면 최근 뽑은 곳으로 채운다.
+   모달 안에 있던 내용을 상시 노출로 꺼낸 것이라 저장 구조는 그대로 쓴다. */
+const RECENT_MAX = 8;
+
+function recentRows() {
+  const seen = new Set(), out = [];
+  for (const r of favs_) {
+    if (seen.has(r.key)) continue;
+    seen.add(r.key); out.push({ r, fav: true });
+    if (out.length >= RECENT_MAX) return out;
+  }
+  for (const r of history_) {
+    if (seen.has(r.key)) continue;
+    seen.add(r.key); out.push({ r, fav: false });
+    if (out.length >= RECENT_MAX) break;
+  }
+  return out;
+}
+
+function renderRecent() {
+  const wrap = $("#recent"), list = $("#recentList");
+  if (!wrap || !list) return;
+  const rows = recentRows();
+  wrap.classList.toggle("hidden", rows.length === 0);
+  document.body.classList.toggle("has-recent", rows.length > 0);
+  list.innerHTML = "";
+
+  rows.forEach(({ r, fav }) => {
+    const el = document.createElement("button");
+    el.className = "rc-item" + (r.grade === "SSR" ? " ssr" : "");
+    el.type = "button";
+
+    const ic = document.createElement("span");
+    ic.className = "rc-ic"; ic.innerHTML = iconHTML(r.ic);
+
+    const body = document.createElement("span");
+    body.className = "rc-body";
+    const nm = document.createElement("span");
+    nm.className = "rc-name"; nm.textContent = r.name;
+    const sub = document.createElement("span");
+    sub.className = "rc-sub";
+    sub.textContent = [catLabel(r.cat), fav ? t("recentSaved") : dexDate(r.ts)]
+      .filter(Boolean).join(" · ");
+    body.append(nm, sub);
+    el.append(ic, body);
+
+    // 누르면 카카오맵으로. url이 없는 옛 기록은 도감을 연다.
+    el.addEventListener("click", () => {
+      if (r.url) window.open(r.url, "_blank", "noopener");
+      else openDex();
+    });
+    list.appendChild(el);
+  });
+}
+
+$("#recentMore").addEventListener("click", openDex);
 $("#dexBtn").addEventListener("click", openDex);
 $("#dexClose").addEventListener("click", closeDex);
 dexWrap.querySelector(".backdrop").addEventListener("click", closeDex);
@@ -2323,6 +2443,7 @@ $("#favBtn").addEventListener("click", favWinner);
 $("#shareBtn").addEventListener("click", shareWinner);
 $("#blockBtn").addEventListener("click", blockWinner);
 updateDexCount();
+renderRecent();
 
 // ---- 상식 퀴즈 오버레이 ----
 const quizWrap = $("#quizWrap"), quizFrame = $("#quizFrame");
@@ -2377,8 +2498,12 @@ const ACTIVE_AD_ID = USE_TEST_ADS ? ADMOB_TEST_BANNER_ID : BANNER_AD_ID;
     await AdMob.initialize({ initializeForTesting: USE_TEST_ADS });
 
     // 배너가 본문 하단을 가리지 않도록, 배너 높이만큼 여백 확보
+    // 배너 높이를 --ad-h 로 넘긴다. body의 padding-bottom만 주던 이전 방식은
+    // 화면 하단 UI가 전부 position:fixed 라 아무 효과가 없었고, 그래서 배너가
+    // 주 버튼들과 맞닿아 있었다(AdMob 배너 가이드라인: 상호작용 버튼 옆 광고 금지).
     AdMob.addListener("bannerAdSizeChanged", (size) => {
       const h = size && size.height ? Number(size.height) : 0;
+      document.documentElement.style.setProperty("--ad-h", h > 0 ? h + "px" : "0px");
       document.body.style.paddingBottom = h > 0 ? h + "px" : "";
     });
 

@@ -15,8 +15,8 @@ android {
         applicationId "com.gachalunch.app"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 15
-        versionName "1.0.14"
+        versionCode 16
+        versionName "1.0.15"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
              // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.
@@ -36,7 +36,10 @@ android {
     }
     buildTypes {
         release {
-            minifyEnabled false
+            // Play 콘솔 "앱 최적화가 기준점 미만입니다"(난독화 1%) 대응 — R8 코드 축소/난독화 사용.
+            // 리소스 축소(shrinkResources)는 웹 자산이 res/가 아닌 assets/에 있어 이득이 적고
+            // 잘못 지워질 위험만 있어 켜지 않는다.
+            minifyEnabled true
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
             if (hasKeystore) {
                 signingConfig signingConfigs.release
